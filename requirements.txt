@@ -1,3 +1,4 @@
 Flask
 PyGithub
 python-dotenv
+gunicorn
