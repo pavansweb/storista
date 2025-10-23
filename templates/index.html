@@ -1,0 +1,59 @@
+<!doctype html>
+<html>
+<head>
+  <title>GitHub Storage UI</title>
+  <style>
+    body { font-family: sans-serif; max-width: 600px; margin: 20px auto; }
+    h1 { font-size: 1.5rem; }
+    ul { list-style: none; padding: 0; }
+    li { padding: 5px 0; display: flex; justify-content: space-between; align-items: center; }
+    form { margin-bottom: 20px; }
+    button.delete-btn { background: crimson; color: white; border: none; padding: 4px 8px; cursor: pointer; }
+    button.delete-btn:hover { background: darkred; }
+  </style>
+</head>
+<body>
+  <h1>Cloud Storage (GitHub Backend)</h1>
+
+  <form method="post" enctype="multipart/form-data" action="/upload">
+    <input type="file" name="file" required>
+    <input type="text" name="folder" placeholder="subfolder (optional)">
+    <button type="submit">Upload</button>
+  </form>
+
+  {% if message %}
+    <p><strong>{{ message }}</strong></p>
+  {% endif %}
+
+  <h2>Files in storage</h2>
+  <ul>
+    {% for f in files %}
+      <li>
+        <span>
+          {{ f.name }} ({{ f.size }} bytes) —
+          <a href="{{ f.download_url }}">download</a>
+        </span>
+        <button class="delete-btn" onclick="deleteFile('{{ f.path }}')">Delete</button>
+      </li>
+    {% else %}
+      <li><em>No files found</em></li>
+    {% endfor %}
+  </ul>
+
+  <script>
+    async function deleteFile(filePath) {
+      if (!confirm(`Delete ${filePath}?`)) return;
+      const response = await fetch(`/api/files/${filePath}`, {
+        method: 'DELETE'
+      });
+      const data = await response.json();
+      if (response.ok) {
+        alert('✅ ' + data.message);
+        location.reload();  // refresh the page to update the list
+      } else {
+        alert('❌ ' + (data.error || 'Something went wrong'));
+      }
+    }
+  </script>
+</body>
+</html>
