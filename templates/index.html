@@ -1,55 +1,390 @@
 <!doctype html>
 <html>
 <head>
-  <title>GitHub Storage UI</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>GitHub Cloud Storage</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
   <style>
-    body { font-family: sans-serif; max-width: 600px; margin: 20px auto; }
-    h1 { font-size: 1.5rem; }
-    ul { list-style: none; padding: 0; }
-    li { padding: 5px 0; display: flex; justify-content: space-between; align-items: center; }
-    form { margin-bottom: 20px; }
-    button.delete-btn { background: crimson; color: white; border: none; padding: 4px 8px; cursor: pointer; }
-    button.delete-btn:hover { background: darkred; }
+    :root {
+      --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      --secondary-gradient: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+    }
+    
+    body {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+    
+    .main-container {
+      padding: 2rem 0;
+    }
+    
+    .cloud-card {
+      background: rgba(255, 255, 255, 0.95);
+      backdrop-filter: blur(10px);
+      border-radius: 20px;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+      overflow: hidden;
+    }
+    
+    .card-header-custom {
+      background: var(--primary-gradient);
+      color: white;
+      padding: 2rem;
+      border: none;
+    }
+    
+    .card-header-custom h1 {
+      font-size: 2rem;
+      font-weight: 700;
+      margin: 0;
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+    
+    .upload-section {
+      background: linear-gradient(135deg, #e0e7ff 0%, #f3e7ff 100%);
+      padding: 2rem;
+      border-radius: 15px;
+      margin-bottom: 1.5rem;
+    }
+    
+    .folder-section {
+      background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+      padding: 2rem;
+      border-radius: 15px;
+      margin-bottom: 1.5rem;
+    }
+    
+    .form-control, .btn {
+      border-radius: 10px;
+    }
+    
+    .btn-primary-custom {
+      background: var(--primary-gradient);
+      border: none;
+      color: white;
+      font-weight: 600;
+      padding: 0.6rem 1.5rem;
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+    
+    .btn-primary-custom:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 20px rgba(102, 126, 234, 0.4);
+    }
+    
+    .btn-folder-custom {
+      background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
+      border: none;
+      color: white;
+      font-weight: 600;
+      padding: 0.6rem 1.5rem;
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+    
+    .btn-folder-custom:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 20px rgba(251, 191, 36, 0.4);
+    }
+    
+    .file-list {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+    }
+    
+    .file-item {
+      background: white;
+      border: 1px solid #e5e7eb;
+      border-radius: 12px;
+      padding: 1rem 1.5rem;
+      margin-bottom: 0.75rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      transition: all 0.3s;
+    }
+    
+    .file-item:hover {
+      transform: translateX(5px);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+      border-color: #667eea;
+    }
+    
+    .file-icon {
+      font-size: 1.5rem;
+      margin-right: 1rem;
+    }
+    
+    .file-info {
+      flex: 1;
+      display: flex;
+      align-items: center;
+    }
+    
+    .file-name {
+      font-weight: 600;
+      color: #1f2937;
+      margin-right: 1rem;
+    }
+    
+    .file-meta {
+      color: #6b7280;
+      font-size: 0.875rem;
+    }
+    
+    .file-actions {
+      display: flex;
+      gap: 0.5rem;
+      align-items: center;
+    }
+    
+    .btn-delete {
+      background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+      border: none;
+      color: white;
+      padding: 0.4rem 1rem;
+      border-radius: 8px;
+      font-size: 0.875rem;
+      font-weight: 600;
+      transition: all 0.2s;
+    }
+    
+    .btn-delete:hover {
+      transform: scale(1.05);
+      box-shadow: 0 4px 12px rgba(239, 68, 68, 0.4);
+    }
+    
+    .btn-download {
+      color: #667eea;
+      text-decoration: none;
+      font-weight: 600;
+      transition: color 0.2s;
+    }
+    
+    .btn-download:hover {
+      color: #764ba2;
+    }
+    
+    .back-button {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      color: #667eea;
+      text-decoration: none;
+      font-weight: 600;
+      margin-bottom: 1.5rem;
+      padding: 0.5rem 1rem;
+      background: white;
+      border-radius: 10px;
+      transition: all 0.2s;
+    }
+    
+    .back-button:hover {
+      background: #667eea;
+      color: white;
+      transform: translateX(-5px);
+    }
+    
+    .message-alert {
+      border-radius: 12px;
+      border: none;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    }
+    
+    .section-title {
+      font-size: 1.25rem;
+      font-weight: 700;
+      color: #1f2937;
+      margin-bottom: 1.5rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    
+    .empty-state {
+      text-align: center;
+      padding: 3rem 1rem;
+      color: #9ca3af;
+    }
+    
+    .empty-state i {
+      font-size: 4rem;
+      margin-bottom: 1rem;
+      opacity: 0.3;
+    }
+    
+    @media (max-width: 768px) {
+      .file-item {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 1rem;
+      }
+      
+      .file-actions {
+        width: 100%;
+        justify-content: flex-end;
+      }
+      
+      .card-header-custom h1 {
+        font-size: 1.5rem;
+      }
+      
+      .upload-section, .folder-section {
+        padding: 1.5rem;
+      }
+    }
   </style>
 </head>
 <body>
-  <h1>Cloud Storage (GitHub Backend)</h1>
+  <div class="container main-container">
+    <div class="cloud-card">
+      <div class="card-header-custom">
+        <h1>
+          <i class="bi bi-cloud-arrow-up"></i>
+          Cloud Storage
+        </h1>
+        <p class="mb-0 mt-2 opacity-75">Powered by GitHub Backend</p>
+      </div>
+      
+      <div class="p-4">
+        <!-- Upload Section -->
+        <div class="upload-section">
+          <h3 class="section-title">
+            <i class="bi bi-upload"></i>
+            Upload Files
+          </h3>
+          <form method="post" enctype="multipart/form-data" action="/upload" class="row g-3">
+            <div class="col-md-5">
+              <input type="file" name="file" class="form-control">
+            </div>
+            <div class="col-md-5">
+              <input type="text" name="url" class="form-control" placeholder="Or paste URL to upload">
+            </div>
+            <div class="col-md-2">
+              <input type="hidden" name="folder" value="{{ current_folder }}">
+              <button type="submit" class="btn btn-primary-custom w-100">
+                <i class="bi bi-cloud-upload me-2"></i>Upload
+              </button>
+            </div>
+          </form>
+        </div>
 
-  <form method="post" enctype="multipart/form-data" action="/upload">
-    <input type="file" name="file" required>
-    <input type="text" name="folder" placeholder="subfolder (optional)">
-    <button type="submit">Upload</button>
-  </form>
+        <!-- Create Folder Section -->
+        <div class="folder-section">
+          <h3 class="section-title">
+            <i class="bi bi-folder-plus"></i>
+            Create New Folder
+          </h3>
+          <form method="post" action="/create_folder" class="row g-3">
+            <div class="col-md-10">
+              <input type="text" name="new_folder_name" class="form-control" placeholder="Enter folder name" required>
+              <input type="hidden" name="folder" value="{{ current_folder }}">
+            </div>
+            <div class="col-md-2">
+              <button type="submit" class="btn btn-folder-custom w-100">
+                <i class="bi bi-plus-circle me-2"></i>Create
+              </button>
+            </div>
+          </form>
+        </div>
 
-  {% if message %}
-    <p><strong>{{ message }}</strong></p>
-  {% endif %}
+        <!-- Message Alert -->
+        {% if message %}
+          <div class="alert alert-info message-alert" role="alert">
+            <i class="bi bi-info-circle me-2"></i>{{ message }}
+          </div>
+        {% endif %}
 
-  <h2>Files in storage</h2>
-  <ul>
-    {% for f in files %}
-      <li>
-        <span>
-          {{ f.name }} ({{ f.size }} bytes) —
-          <a href="{{ f.download_url }}">download</a>
-        </span>
-        <button class="delete-btn" onclick="deleteFile('{{ f.path }}')">Delete</button>
-      </li>
-    {% else %}
-      <li><em>No files found</em></li>
-    {% endfor %}
-  </ul>
+        <!-- Back Button -->
+        {% if current_folder %}
+          <a href="{{ url_for('index', folder=parent_folder) }}" class="back-button">
+            <i class="bi bi-arrow-left"></i>
+            Back to Parent
+          </a>
+        {% endif %}
 
+        <!-- Files List -->
+        <div class="mt-4">
+          <h3 class="section-title">
+            <i class="bi bi-files"></i>
+            Files in {{ current_folder or 'root' }}
+          </h3>
+          
+          <ul class="file-list">
+            {% for f in files %}
+              <li class="file-item">
+                <div class="file-info">
+                  {% if f.is_dir %}
+                    <i class="bi bi-folder-fill file-icon" style="color: #fbbf24;"></i>
+                    <a href="{{ url_for('index', folder=f.path.replace('storage/', '')) }}" class="file-name">
+                      {{ f.name }}/
+                    </a>
+                  {% else %}
+                    <i class="bi bi-file-earmark-fill file-icon" style="color: #667eea;"></i>
+                    <div>
+                      <div class="file-name">{{ f.name }}</div>
+                      <div class="file-meta">{{ f.size }} bytes</div>
+                    </div>
+                  {% endif %}
+                </div>
+                
+                <div class="file-actions">
+                  {% if not f.is_dir %}
+                    <a href="{{ f.download_url }}" class="btn-download">
+                      <i class="bi bi-download me-1"></i>Download
+                    </a>
+                  {% endif %}
+                  
+                  {% if f.is_dir %}
+                    <button class="btn btn-delete" onclick="deleteFolder('{{ f.path }}')">
+                      <i class="bi bi-trash me-1"></i>Delete
+                    </button>
+                  {% else %}
+                    <button class="btn btn-delete" onclick="deleteFile('{{ f.path }}')">
+                      <i class="bi bi-trash me-1"></i>Delete
+                    </button>
+                  {% endif %}
+                </div>
+              </li>
+            {% else %}
+              <li class="empty-state">
+                <i class="bi bi-inbox"></i>
+                <p class="mb-0">No files found. Upload your first file to get started!</p>
+              </li>
+            {% endfor %}
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
   <script>
     async function deleteFile(filePath) {
       if (!confirm(`Delete ${filePath}?`)) return;
-      const response = await fetch(`/api/files/${filePath}`, {
-        method: 'DELETE'
-      });
+      const response = await fetch(`/api/files/${filePath}`, { method: 'DELETE' });
+      const data = await response.json();
+      if (response.ok) {
+        document.querySelector('.message-alert').append(`✅ ${data.message}`);
+        location.reload();
+      } else {
+        document.querySelector('.message-alert').append('❌ ' + (data.error || 'Something went wrong'));
+      }
+    }
+    
+    async function deleteFolder(folderPath) {
+      if (!confirm(`Delete entire folder '${folderPath}' and all its contents?`)) return;
+      const response = await fetch(`/api/folders/${folderPath}`, { method: 'DELETE' });
       const data = await response.json();
       if (response.ok) {
         alert('✅ ' + data.message);
-        location.reload();  // refresh the page to update the list
+        location.reload();
       } else {
         alert('❌ ' + (data.error || 'Something went wrong'));
       }
