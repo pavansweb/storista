@@ -1,9 +1,0 @@
-{
-  "manifest_version": 3,
-  "name": "hi",
-  "version": "1.0",
-  "description": "you might never know",
-  "action": {
-    "default_popup": "popup.html"
-  }
-}
