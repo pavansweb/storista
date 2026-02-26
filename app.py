@@ -16,7 +16,7 @@ SUPABASE_URL = os.environ.get("SUPABASE_URL")
 SUPABASE_KEY = os.environ.get("SUPABASE_SERVICE_KEY")
 SUPABASE_BUCKET = os.environ.get("SUPABASE_BUCKET", "storage")
 
-STORAGE_DIR = ""
+STORAGE_DIR = "storage"
 MAX_FILE_SIZE = 50 * 1024 * 1024  # 50MB
 
 if not (GITHUB_TOKEN and GITHUB_REPO):
@@ -104,7 +104,7 @@ def list_files(folder=""):
     # 2️⃣ Supabase Files
     # --------------------------
     try:
-        supabase_folder_path = folder.strip("/")
+        supabase_folder_path = f"{STORAGE_DIR}/{folder}".strip("/")
     
         response = supabase.storage.from_(SUPABASE_BUCKET).list(
             supabase_folder_path
