@@ -16,7 +16,7 @@ SUPABASE_URL = os.environ.get("SUPABASE_URL")
 SUPABASE_KEY = os.environ.get("SUPABASE_SERVICE_KEY")
 SUPABASE_BUCKET = os.environ.get("SUPABASE_BUCKET", "storage")
 
-STORAGE_DIR = "storage"
+STORAGE_DIR = ""
 MAX_FILE_SIZE = 50 * 1024 * 1024  # 50MB
 
 if not (GITHUB_TOKEN and GITHUB_REPO):
@@ -41,9 +41,10 @@ app.config['MAX_CONTENT_LENGTH'] = MAX_FILE_SIZE
 def full_path(filename, folder=""):
     folder = folder.strip().strip("/")
     filename = secure_filename(filename)
+
     if folder:
-        return f"{STORAGE_DIR}/{folder}/{filename}"
-    return f"{STORAGE_DIR}/{filename}"
+        return f"{folder}/{filename}"
+    return filename
 
 
 def get_direct_download_url(file_path):
