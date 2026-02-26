@@ -16,7 +16,7 @@ SUPABASE_URL = os.environ.get("SUPABASE_URL")
 SUPABASE_KEY = os.environ.get("SUPABASE_SERVICE_KEY")
 SUPABASE_BUCKET = os.environ.get("SUPABASE_BUCKET", "storage")
 
-STORAGE_DIR = "storage"
+STORAGE_DIR = ""
 MAX_FILE_SIZE = 50 * 1024 * 1024  # 50MB
 
 if not (GITHUB_TOKEN and GITHUB_REPO):
