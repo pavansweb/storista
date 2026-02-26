@@ -107,9 +107,9 @@ def list_files(folder=""):
         supabase_folder_path = f"{STORAGE_DIR}/{folder}".strip("/")
     
         sb_items = supabase.storage.from_(SUPABASE_BUCKET).list(
-            path=supabase_folder_path
+            supabase_folder_path
         )
-    
+            
         for item in sb_items:
             if not item.get("name") or item["name"].startswith("."):
                 continue
