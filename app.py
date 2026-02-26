@@ -104,7 +104,7 @@ def list_files(folder=""):
     # 2️⃣ Supabase Files
     # --------------------------
     try:
-        supabase_folder_path = f"{STORAGE_DIR}/{folder}".strip("/")
+        supabase_folder_path = f"{STORAGE_DIR}/{folder}".strip("/") + "/"
     
         print("Listing Supabase path:", supabase_folder_path)
     
