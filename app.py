@@ -67,11 +67,13 @@ def format_bytes(size):
 def list_files(folder=""):
     files = []
 
-    folder_path = f"{STORAGE_DIR}/{folder}".strip("/")
+    # --------------------------
+    # 1️⃣ GitHub Files
+    # --------------------------
+    github_folder_path = f"{STORAGE_DIR}/{folder}".strip("/")
 
-    # 1️⃣ GitHub Files (Old Files)
     try:
-        contents = repo.get_contents(folder_path, ref=GITHUB_BRANCH)
+        contents = repo.get_contents(github_folder_path, ref=GITHUB_BRANCH)
         if not isinstance(contents, list):
             contents = [contents]
 
@@ -97,16 +99,22 @@ def list_files(folder=""):
     except GithubException:
         pass
 
-    # 2️⃣ Supabase Files (New Files)
+    # --------------------------
+    # 2️⃣ Supabase Files
+    # --------------------------
+    supabase_folder_path = folder.strip("/")
+
     try:
-        sb_items = supabase.storage.from_(SUPABASE_BUCKET).list(folder_path)
+        sb_items = supabase.storage.from_(SUPABASE_BUCKET).list(
+            path=supabase_folder_path if supabase_folder_path else None
+        )
 
         for item in sb_items:
             if item["name"] == ".keep":
                 continue
 
             is_dir = item.get("metadata") is None
-            file_path = f"{folder_path}/{item['name']}".strip("/")
+            file_path = f"{supabase_folder_path}/{item['name']}".strip("/")
 
             file_info = {
                 "name": item["name"],
@@ -119,13 +127,23 @@ def list_files(folder=""):
                 size = item["metadata"]["size"]
                 file_info["size"] = size
                 file_info["size_formatted"] = format_bytes(size)
-                file_info["download_url"] = supabase.storage.from_(SUPABASE_BUCKET).get_public_url(file_path)
+                file_info["download_url"] = (
+                    supabase.storage
+                    .from_(SUPABASE_BUCKET)
+                    .get_public_url(file_path)["publicURL"]
+                )
                 file_info["mime_type"] = get_mime_type(item["name"])
 
             files.append(file_info)
 
-    except Exception:
-        pass
+    except Exception as e:
+        print("Supabase list error:", e)
+
+    unique = {}
+    for f in files:
+        unique[(f["name"], f["is_dir"])] = f
+
+    files = list(unique.values())
 
     files.sort(key=lambda x: (not x["is_dir"], x["name"].lower()))
     return files
