@@ -105,9 +105,13 @@ def list_files(folder=""):
     try:
         supabase_folder_path = folder.strip("/")
     
-        sb_items = supabase.storage.from_(SUPABASE_BUCKET).list(
+        response = supabase.storage.from_(SUPABASE_BUCKET).list(
             supabase_folder_path
         )
+    
+        sb_items = response.data if hasattr(response, "data") else response
+    
+        print("Supabase items:", sb_items)  # DEBUG
     
         for item in sb_items:
             if item["name"].startswith("."):
