@@ -229,13 +229,12 @@ def api_delete_file(file_path):
         return jsonify({"error": str(e)}), 404
 
 @app.route("/test_browse/<path:folder>")
-def index(folder):
+def test_browse(folder):
     files = list_files(folder)
     return jsonify({
         "folder": folder,
         "files": files
     })
-
 
 # --- Error Handler ---
 @app.errorhandler(413)
