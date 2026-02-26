@@ -146,6 +146,8 @@ def list_files(folder=""):
     except Exception as e:
         print("Supabase list error:", e)
 
+    files.sort(key=lambda x: (not x["is_dir"], x["name"].lower()))
+    return files
 
 # --- Routes ---
 @app.route("/", defaults={"folder": ""})
