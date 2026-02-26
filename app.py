@@ -101,56 +101,67 @@ def list_files(folder=""):
         pass
 
     # --------------------------
-    # 2️⃣ Supabase Files (FIXED)
+    # 2️⃣ Supabase Files (Correct Way)
     # --------------------------
     try:
-        prefix = f"{STORAGE_DIR}/{folder}".strip("/")
+        base_prefix = f"{STORAGE_DIR}/{folder}".strip("/")
     
-        # Ensure proper prefix behavior
-        if prefix:
-            prefix = prefix + "/"
+        if base_prefix:
+            base_prefix += "/"
     
-        print("Listing with prefix:", prefix)
+        print("Listing prefix:", base_prefix)
     
-        sb_items = supabase.storage.from_(SUPABASE_BUCKET).list(
-            path=prefix,
-            limit=100,
-            offset=0
+        # List everything under STORAGE_DIR
+        all_objects = supabase.storage.from_(SUPABASE_BUCKET).list(
+            path=STORAGE_DIR,
+            limit=1000
         )
     
-        print("Raw supabase response:", sb_items)
+        print("All objects:", all_objects)
     
-        for item in sb_items:
-            name = item.get("name")
+        seen_folders = set()
     
-            if not name or name.startswith("."):
+        for obj in all_objects:
+            name = obj.get("name")
+            if not name:
                 continue
     
-            # If it contains "/" it's a subfolder indicator
-            is_dir = "/" in name
+            full_key = f"{STORAGE_DIR}/{name}"
     
-            file_path = f"{prefix}{name}".strip("/")
+            # Only process objects under current prefix
+            if not full_key.startswith(base_prefix):
+                continue
     
-            file_info = {
-                "name": name.rstrip("/"),
-                "path": file_path,
-                "is_dir": is_dir,
-                "source": "supabase"
-            }
+            relative_path = full_key[len(base_prefix):]
     
-            if not is_dir:
-                metadata = item.get("metadata") or {}
-                size = metadata.get("size", 0)
+            # If nested deeper → it's a folder
+            if "/" in relative_path:
+                folder_name = relative_path.split("/")[0]
+                if folder_name not in seen_folders:
+                    seen_folders.add(folder_name)
+                    files.append({
+                        "name": folder_name,
+                        "path": f"{base_prefix}{folder_name}",
+                        "is_dir": True,
+                        "source": "supabase"
+                    })
+            else:
+                # It's a file in current folder
+                size = obj.get("metadata", {}).get("size", 0)
     
                 public_url = supabase.storage.from_(SUPABASE_BUCKET)\
-                    .get_public_url(file_path)
+                    .get_public_url(full_key)
     
-                file_info["size"] = size
-                file_info["size_formatted"] = format_bytes(size)
-                file_info["download_url"] = public_url["publicURL"]
-                file_info["mime_type"] = get_mime_type(name)
-    
-            files.append(file_info)
+                files.append({
+                    "name": relative_path,
+                    "path": full_key,
+                    "is_dir": False,
+                    "size": size,
+                    "size_formatted": format_bytes(size),
+                    "download_url": public_url["publicURL"],
+                    "mime_type": get_mime_type(relative_path),
+                    "source": "supabase"
+                })
     
     except Exception as e:
         print("Supabase list error:", e)
