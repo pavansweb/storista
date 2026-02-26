@@ -1088,14 +1088,14 @@ uploadForm.addEventListener('submit', async function(e) {
   uploadOverlay.classList.add('show');
 
   try {
-    const folder = "{{ current_folder or '' }}";
+    const folder = {{ current_folder | tojson }} || "";
 
     /* ---- FILE UPLOAD ---- */
     if (hasFile) {
       const customName = fileName.value.trim() || file.name;
-      const path = folder 
-        ? `${folder}/${customName}`
-        : customName;
+      const path = folder
+        ? `storage/${folder}/${customName}`
+        : `storage/${customName}`;
 
       const { error } = await sb
         .storage
