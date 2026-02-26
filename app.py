@@ -228,6 +228,13 @@ def api_delete_file(file_path):
     except Exception as e:
         return jsonify({"error": str(e)}), 404
 
+@app.route("/test-browse/<path:folder>")
+def index(folder):
+    files = list_files(folder)
+    return jsonify({
+        "folder": folder,
+        "files": files
+    })
 
 
 # --- Error Handler ---
@@ -236,10 +243,6 @@ def request_entity_too_large(error):
     flash(f"File too large. Maximum size is {format_bytes(MAX_FILE_SIZE)}")
     return redirect(url_for("index")), 413
 
-@app.route("/debug-path/<path:folder>")
-def debug_path(folder):
-    supabase_folder_path = f"{STORAGE_DIR}/{folder}".strip("/")
-    return f"Listing path: {supabase_folder_path}"
 
 if __name__ == "__main__":
     app.run(debug=True, port=5001)
