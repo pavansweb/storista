@@ -2,3 +2,4 @@ Flask
 PyGithub
 python-dotenv
 gunicorn
+supabase
