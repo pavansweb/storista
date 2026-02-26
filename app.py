@@ -141,11 +141,11 @@ def list_files(folder=""):
     except Exception as e:
         print("Supabase list error:", e)
 
-    unique = {}
-    for f in files:
-        unique[(f["name"], f["is_dir"])] = f
+    #unique = {}
+    #for f in files:
+     #   unique[(f["name"], f["is_dir"])] = f
 
-    files = list(unique.values())
+    #files = list(unique.values())
 
     files.sort(key=lambda x: (not x["is_dir"], x["name"].lower()))
     return files
