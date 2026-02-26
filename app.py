@@ -101,45 +101,19 @@ def list_files(folder=""):
         pass
 
     # --------------------------
-    # 2️⃣ Supabase Files (FINAL CLEAN)
+    # 2️⃣ Supabase Files (NUCLEAR DEBUG)
     # --------------------------
     try:
         supabase_folder_path = f"{STORAGE_DIR}/{folder}".strip("/")
-    
-        sb_items = supabase.storage.from_(SUPABASE_BUCKET).list(
+        
+        result = supabase.storage.from_(SUPABASE_BUCKET).list(
             supabase_folder_path
         )
-            
-        for item in sb_items:
-            if not item.get("name") or item["name"].startswith("."):
-                continue
     
-            is_dir = item.get("metadata") is None
-    
-            file_path = f"{supabase_folder_path}/{item['name']}".strip("/")
-    
-            file_info = {
-                "name": item["name"],
-                "path": file_path,
-                "is_dir": is_dir,
-                "source": "supabase"
-            }
-    
-            if not is_dir:
-                size = item["metadata"]["size"]
-    
-                public_url = supabase.storage.from_(SUPABASE_BUCKET)\
-                    .get_public_url(file_path)
-    
-                file_info["size"] = size
-                file_info["size_formatted"] = format_bytes(size)
-                file_info["download_url"] = public_url["publicURL"]
-                file_info["mime_type"] = get_mime_type(item["name"])
-    
-            files.append(file_info)
+        return result  # 👈 RETURN RAW RESULT IMMEDIATELY
     
     except Exception as e:
-        print("Supabase list error:", e)
+        return {"error": str(e)}
 
     #unique = {}
     #for f in files:
