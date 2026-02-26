@@ -101,76 +101,42 @@ def list_files(folder=""):
         pass
 
     # --------------------------
-    # 2️⃣ Supabase Files (RECURSIVE SAFE)
+    # 2️⃣ Supabase Files (FINAL CLEAN)
     # --------------------------
     try:
-        base_prefix = f"{STORAGE_DIR}/{folder}".strip("/")
+        supabase_folder_path = f"{STORAGE_DIR}/{folder}".strip("/")
     
-        if base_prefix:
-            base_prefix += "/"
-    
-        print("Listing prefix:", base_prefix)
-    
-        # Get everything under STORAGE_DIR
-        all_items = supabase.storage.from_(SUPABASE_BUCKET).list(
-            path="",
-            limit=1000
+        sb_items = supabase.storage.from_(SUPABASE_BUCKET).list(
+            path=supabase_folder_path
         )
     
-        print("ALL BUCKET ITEMS:", all_items)
-    
-        seen_dirs = set()
-    
-        for item in all_items:
-            name = item.get("name")
-            if not name:
+        for item in sb_items:
+            if not item.get("name") or item["name"].startswith("."):
                 continue
     
-            full_key = name  # Supabase returns full object path
+            is_dir = item.get("metadata") is None
     
-            # Only care about objects under storage/
-            if not full_key.startswith(STORAGE_DIR + "/"):
-                continue
+            file_path = f"{supabase_folder_path}/{item['name']}".strip("/")
     
-            # Remove leading storage/
-            relative_full = full_key[len(STORAGE_DIR)+1:]
+            file_info = {
+                "name": item["name"],
+                "path": file_path,
+                "is_dir": is_dir,
+                "source": "supabase"
+            }
     
-            # Only process items under current folder
-            if base_prefix:
-                relative_prefix = base_prefix[len(STORAGE_DIR)+1:]
-                if not relative_full.startswith(relative_prefix):
-                    continue
-                relative = relative_full[len(relative_prefix):]
-            else:
-                relative = relative_full
-    
-            # Detect folder vs file
-            if "/" in relative:
-                folder_name = relative.split("/")[0]
-                if folder_name not in seen_dirs:
-                    seen_dirs.add(folder_name)
-                    files.append({
-                        "name": folder_name,
-                        "path": f"{STORAGE_DIR}/{folder}/{folder_name}".strip("/"),
-                        "is_dir": True,
-                        "source": "supabase"
-                    })
-            else:
-                size = item.get("metadata", {}).get("size", 0)
+            if not is_dir:
+                size = item["metadata"]["size"]
     
                 public_url = supabase.storage.from_(SUPABASE_BUCKET)\
-                    .get_public_url(full_key)
+                    .get_public_url(file_path)
     
-                files.append({
-                    "name": relative,
-                    "path": full_key,
-                    "is_dir": False,
-                    "size": size,
-                    "size_formatted": format_bytes(size),
-                    "download_url": public_url["publicURL"],
-                    "mime_type": get_mime_type(relative),
-                    "source": "supabase"
-                })
+                file_info["size"] = size
+                file_info["size_formatted"] = format_bytes(size)
+                file_info["download_url"] = public_url["publicURL"]
+                file_info["mime_type"] = get_mime_type(item["name"])
+    
+            files.append(file_info)
     
     except Exception as e:
         print("Supabase list error:", e)
@@ -263,10 +229,6 @@ def api_delete_file(file_path):
         return jsonify({"error": str(e)}), 404
 
 
-@app.route("/debug-songs")
-def debug_songs():
-    result = supabase.storage.from_(SUPABASE_BUCKET).list(path="storage/songs")
-    return jsonify(result)
 
 # --- Error Handler ---
 @app.errorhandler(413)
