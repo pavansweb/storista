@@ -102,40 +102,45 @@ def list_files(folder=""):
     # --------------------------
     # 2️⃣ Supabase Files
     # --------------------------
-    supabase_folder_path = folder.strip("/")
-
     try:
+        supabase_folder_path = folder.strip("/")
+    
         sb_items = supabase.storage.from_(SUPABASE_BUCKET).list(
-            path=supabase_folder_path if supabase_folder_path else None
+            supabase_folder_path
         )
-
+    
         for item in sb_items:
-            if item["name"] == ".keep":
+            if item["name"].startswith("."):
                 continue
-
+    
             is_dir = item.get("metadata") is None
-            file_path = f"{supabase_folder_path}/{item['name']}".strip("/")
-
+    
+            file_path = (
+                f"{supabase_folder_path}/{item['name']}".strip("/")
+                if supabase_folder_path
+                else item["name"]
+            )
+    
             file_info = {
                 "name": item["name"],
                 "path": file_path,
                 "is_dir": is_dir,
                 "source": "supabase"
             }
-
+    
             if not is_dir:
                 size = item["metadata"]["size"]
+    
+                public_url = supabase.storage.from_(SUPABASE_BUCKET)\
+                    .get_public_url(file_path)
+    
                 file_info["size"] = size
                 file_info["size_formatted"] = format_bytes(size)
-                file_info["download_url"] = (
-                    supabase.storage
-                    .from_(SUPABASE_BUCKET)
-                    .get_public_url(file_path)["publicURL"]
-                )
+                file_info["download_url"] = public_url["publicURL"]
                 file_info["mime_type"] = get_mime_type(item["name"])
-
+    
             files.append(file_info)
-
+    
     except Exception as e:
         print("Supabase list error:", e)
 
