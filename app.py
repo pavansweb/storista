@@ -101,36 +101,46 @@ def list_files(folder=""):
         pass
 
     # --------------------------
-    # 2️⃣ Supabase Files
+    # 2️⃣ Supabase Files (FIXED)
     # --------------------------
     try:
-        supabase_folder_path = f"{STORAGE_DIR}/{folder}".strip("/") + "/"
+        prefix = f"{STORAGE_DIR}/{folder}".strip("/")
     
-        print("Listing Supabase path:", supabase_folder_path)
+        # Ensure proper prefix behavior
+        if prefix:
+            prefix = prefix + "/"
+    
+        print("Listing with prefix:", prefix)
     
         sb_items = supabase.storage.from_(SUPABASE_BUCKET).list(
-            supabase_folder_path
+            path=prefix,
+            limit=100,
+            offset=0
         )
     
-        print("Supabase raw result:", sb_items)
+        print("Raw supabase response:", sb_items)
     
         for item in sb_items:
-            if item["name"].startswith("."):
+            name = item.get("name")
+    
+            if not name or name.startswith("."):
                 continue
     
-            is_dir = item.get("metadata") is None
+            # If it contains "/" it's a subfolder indicator
+            is_dir = "/" in name
     
-            file_path = f"{supabase_folder_path}/{item['name']}".strip("/")
+            file_path = f"{prefix}{name}".strip("/")
     
             file_info = {
-                "name": item["name"],
+                "name": name.rstrip("/"),
                 "path": file_path,
                 "is_dir": is_dir,
                 "source": "supabase"
             }
     
             if not is_dir:
-                size = item["metadata"]["size"]
+                metadata = item.get("metadata") or {}
+                size = metadata.get("size", 0)
     
                 public_url = supabase.storage.from_(SUPABASE_BUCKET)\
                     .get_public_url(file_path)
@@ -138,7 +148,7 @@ def list_files(folder=""):
                 file_info["size"] = size
                 file_info["size_formatted"] = format_bytes(size)
                 file_info["download_url"] = public_url["publicURL"]
-                file_info["mime_type"] = get_mime_type(item["name"])
+                file_info["mime_type"] = get_mime_type(name)
     
             files.append(file_info)
     
