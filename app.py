@@ -106,13 +106,13 @@ def list_files(folder=""):
     try:
         supabase_folder_path = f"{STORAGE_DIR}/{folder}".strip("/")
     
-        response = supabase.storage.from_(SUPABASE_BUCKET).list(
+        print("Listing Supabase path:", supabase_folder_path)
+    
+        sb_items = supabase.storage.from_(SUPABASE_BUCKET).list(
             supabase_folder_path
         )
     
-        sb_items = response.data if hasattr(response, "data") else response
-    
-        print("Supabase items:", sb_items)  # DEBUG
+        print("Supabase raw result:", sb_items)
     
         for item in sb_items:
             if item["name"].startswith("."):
@@ -120,11 +120,7 @@ def list_files(folder=""):
     
             is_dir = item.get("metadata") is None
     
-            file_path = (
-                f"{supabase_folder_path}/{item['name']}".strip("/")
-                if supabase_folder_path
-                else item["name"]
-            )
+            file_path = f"{supabase_folder_path}/{item['name']}".strip("/")
     
             file_info = {
                 "name": item["name"],
