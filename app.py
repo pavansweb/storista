@@ -101,7 +101,7 @@ def list_files(folder=""):
         pass
 
     # --------------------------
-    # 2️⃣ Supabase Files (Correct Way)
+    # 2️⃣ Supabase Files (RECURSIVE SAFE)
     # --------------------------
     try:
         base_prefix = f"{STORAGE_DIR}/{folder}".strip("/")
@@ -111,55 +111,64 @@ def list_files(folder=""):
     
         print("Listing prefix:", base_prefix)
     
-        # List everything under STORAGE_DIR
-        all_objects = supabase.storage.from_(SUPABASE_BUCKET).list(
-            path=STORAGE_DIR,
+        # Get everything under STORAGE_DIR
+        all_items = supabase.storage.from_(SUPABASE_BUCKET).list(
+            path="",
             limit=1000
         )
     
-        print("All objects:", all_objects)
+        print("ALL BUCKET ITEMS:", all_items)
     
-        seen_folders = set()
+        seen_dirs = set()
     
-        for obj in all_objects:
-            name = obj.get("name")
+        for item in all_items:
+            name = item.get("name")
             if not name:
                 continue
     
-            full_key = f"{STORAGE_DIR}/{name}"
+            full_key = name  # Supabase returns full object path
     
-            # Only process objects under current prefix
-            if not full_key.startswith(base_prefix):
+            # Only care about objects under storage/
+            if not full_key.startswith(STORAGE_DIR + "/"):
                 continue
     
-            relative_path = full_key[len(base_prefix):]
+            # Remove leading storage/
+            relative_full = full_key[len(STORAGE_DIR)+1:]
     
-            # If nested deeper → it's a folder
-            if "/" in relative_path:
-                folder_name = relative_path.split("/")[0]
-                if folder_name not in seen_folders:
-                    seen_folders.add(folder_name)
+            # Only process items under current folder
+            if base_prefix:
+                relative_prefix = base_prefix[len(STORAGE_DIR)+1:]
+                if not relative_full.startswith(relative_prefix):
+                    continue
+                relative = relative_full[len(relative_prefix):]
+            else:
+                relative = relative_full
+    
+            # Detect folder vs file
+            if "/" in relative:
+                folder_name = relative.split("/")[0]
+                if folder_name not in seen_dirs:
+                    seen_dirs.add(folder_name)
                     files.append({
                         "name": folder_name,
-                        "path": f"{base_prefix}{folder_name}",
+                        "path": f"{STORAGE_DIR}/{folder}/{folder_name}".strip("/"),
                         "is_dir": True,
                         "source": "supabase"
                     })
             else:
-                # It's a file in current folder
-                size = obj.get("metadata", {}).get("size", 0)
+                size = item.get("metadata", {}).get("size", 0)
     
                 public_url = supabase.storage.from_(SUPABASE_BUCKET)\
                     .get_public_url(full_key)
     
                 files.append({
-                    "name": relative_path,
+                    "name": relative,
                     "path": full_key,
                     "is_dir": False,
                     "size": size,
                     "size_formatted": format_bytes(size),
                     "download_url": public_url["publicURL"],
-                    "mime_type": get_mime_type(relative_path),
+                    "mime_type": get_mime_type(relative),
                     "source": "supabase"
                 })
     
