@@ -939,6 +939,7 @@
           <ul class="file-list" id="fileList">
             {% for f in files %}
               <li class="file-item" data-name="{{ f.name|lower }}" data-type="{{ 'folder' if f.is_dir else 'file' }}">
+                <pre>{{ f }}</pre> 
                 <div class="file-info">
                   {% if f.is_dir %}
                     <div class="file-icon" style="background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%); box-shadow: 0 4px 12px rgba(251, 191, 36, 0.3);">
