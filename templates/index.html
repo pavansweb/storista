@@ -1114,8 +1114,8 @@ uploadForm.addEventListener('submit', async function(e) {
       const fileNameFromUrl = urlInput.value.split('/').pop().split('?')[0];
 
       const path = folder
-        ? `${folder}/${fileNameFromUrl}`
-        : fileNameFromUrl;
+        ? `storage/${folder}/${fileNameFromUrl}`
+        : `storage/${fileNameFromUrl}`;
 
       const { error } = await sb
         .storage
