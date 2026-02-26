@@ -228,7 +228,7 @@ def api_delete_file(file_path):
     except Exception as e:
         return jsonify({"error": str(e)}), 404
 
-@app.route("/test-browse/<path:folder>")
+@app.route("/test_browse/<path:folder>")
 def index(folder):
     files = list_files(folder)
     return jsonify({
