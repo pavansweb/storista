@@ -263,9 +263,9 @@ def api_delete_file(file_path):
         return jsonify({"error": str(e)}), 404
 
 
-@app.route("/debug-supabase")
-def debug_supabase():
-    result = supabase.storage.from_(SUPABASE_BUCKET).list(path="")
+@app.route("/debug-songs")
+def debug_songs():
+    result = supabase.storage.from_(SUPABASE_BUCKET).list(path="storage/songs")
     return jsonify(result)
 
 # --- Error Handler ---
