@@ -1094,8 +1094,8 @@ uploadForm.addEventListener('submit', async function(e) {
     if (hasFile) {
       const customName = fileName.value.trim() || file.name;
       const path = folder 
-        ? `storage/${folder}/${customName}`
-        : `storage/${customName}`;
+        ? `${folder}/${customName}`
+        : customName;
 
       const { error } = await sb
         .storage
