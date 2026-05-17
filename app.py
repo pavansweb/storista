@@ -14,8 +14,8 @@ from dotenv import load_dotenv
 load_dotenv()
 
 class Config:
-    GITHUB_TOKEN = os.environ.get("GITHUB_TOKEN")
-    GITHUB_REPO = os.environ.get("GITHUB_REPO")
+    GIT_TOKEN = os.environ.get("GIT_TOKEN")
+    GIT_REPO = os.environ.get("GIT_REPO")
     GITHUB_BRANCH = os.environ.get("GITHUB_BRANCH", "main")
     STORAGE_DIR = "storage"
     MAX_FILE_SIZE = 50 * 1024 * 1024  # 50MB
@@ -23,13 +23,13 @@ class Config:
 
     @classmethod
     def validate(cls):
-        if not (cls.GITHUB_TOKEN and cls.GITHUB_REPO):
-            raise RuntimeError("Set GITHUB_TOKEN and GITHUB_REPO env vars before running.")
+        if not (cls.GIT_TOKEN and cls.GIT_REPO):
+            raise RuntimeError("Set GIT_TOKEN and GIT_REPO env vars before running.")
 
 # --- Initialization ---
 Config.validate()
-g = Github(Config.GITHUB_TOKEN)
-repo = g.get_repo(Config.GITHUB_REPO)
+g = Github(Config.GIT_TOKEN)
+repo = g.get_repo(Config.GIT_REPO)
 
 app = Flask(__name__)
 app.secret_key = Config.SECRET_KEY
@@ -47,7 +47,7 @@ def format_bytes(size: int) -> str:
 
 def get_direct_download_url(file_path: str) -> str:
     """Get direct GitHub raw content URL."""
-    return f"https://raw.githubusercontent.com/{Config.GITHUB_REPO}/{Config.GITHUB_BRANCH}/{file_path}"
+    return f"https://raw.githubusercontent.com/{Config.GIT_REPO}/{Config.GITHUB_BRANCH}/{file_path}"
 
 def get_mime_type(filename: str) -> str:
     """Get MIME type for file."""

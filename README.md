@@ -29,8 +29,8 @@ A sleek, lightweight cloud storage solution powered by GitHub.
 
 3.  **Configure environment variables:**
     Copy `.env.example` to `.env` and fill in your details:
-    *   `GITHUB_TOKEN`: Your GitHub Personal Access Token.
-    *   `GITHUB_REPO`: The repository to use for storage (e.g., `username/storage-repo`).
+    *   `GIT_TOKEN`: Your GitHub Personal Access Token.
+    *   `GIT_REPO`: The repository to use for storage (e.g., `username/storage-repo`).
     *   `GITHUB_BRANCH`: The branch to use (default: `main`).
     *   `FLASK_SECRET`: A random string for session security.
 
