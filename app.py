@@ -105,6 +105,13 @@ def list_repo_contents(folder: str = "") -> List[Dict[str, Any]]:
 @app.route("/browse/<path:folder>")
 def index(folder: str):
     """Main page displaying files and folders."""
+    # Security: Protect 'vault' folder
+    if folder.startswith("vault") or folder == "vault":
+        if request.args.get("password") == "cheese burger":
+            app.logger.info("Vault access granted via URL param")
+        elif not request.cookies.get("vault_access") == "granted":
+            return render_template("index.html", files=[], current_folder=folder, parent_folder="", needs_auth=True)
+
     files = list_repo_contents(folder)
     
     # Calculate parent folder path
@@ -119,6 +126,21 @@ def index(folder: str):
         current_folder=folder,
         parent_folder=parent
     )
+
+@app.route("/auth/vault", methods=["POST"])
+def auth_vault():
+    """Verify password for vault access."""
+    password = request.form.get("password", "").strip().lower()
+    folder = request.form.get("folder", "")
+    
+    if password == "cheese burger":
+        response = redirect(url_for("index", folder=folder))
+        # Set a simple cookie for session access (expires in 1 hour)
+        response.set_cookie("vault_access", "granted", max_age=3600)
+        return response
+    
+    flash("Wrong! You clearly don't know the vibes. 💀")
+    return redirect(url_for("index", folder=folder))
 
 @app.route("/upload", methods=["POST"])
 def upload():
