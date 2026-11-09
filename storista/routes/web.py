@@ -188,3 +188,43 @@ def create_folder():
         flash(f"Failed to create folder: {error_msg}")
 
     return redirect(url_for("web.index", folder=folder))
+
+
+@web_bp.route("/vault/move", methods=["POST"])
+def move_to_vault():
+    """Move an object into the private vault via standard web form."""
+    service = get_github_service()
+    item_path = request.form.get("path", "").strip()
+    current_folder = request.form.get("current_folder", "").strip()
+
+    if not item_path:
+        flash("No item specified to move.")
+        return redirect(url_for("web.index", folder=current_folder))
+
+    try:
+        norm_path = normalize_storage_path(item_path)
+    except PermissionError:
+        flash("Access denied: invalid storage path.")
+        return redirect(url_for("web.index", folder=current_folder)), 403
+
+    if is_vault_path(norm_path):
+        flash("Item is already in the private vault.")
+        return redirect(url_for("web.index", folder=current_folder))
+
+    try:
+        result = service.move_to_vault(item_path)
+        flash(f"'{result['name']}' moved to Private Vault successfully! 🔐")
+    except PermissionError as e:
+        flash(f"Access denied: {e}")
+    except (FileNotFoundError, ValueError, IsADirectoryError) as e:
+        flash(f"Cannot move item: {e}")
+    except GithubException as e:
+        error_msg = extract_github_error_message(e)
+        current_app.logger.error(f"GitHub move error: {error_msg}")
+        flash(f"GitHub error: {error_msg}")
+    except Exception as e:
+        current_app.logger.error(f"Unexpected move error: {e}")
+        flash(f"Failed to move to vault: {e}")
+
+    return redirect(url_for("web.index", folder=current_folder))
+

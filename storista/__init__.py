@@ -77,6 +77,15 @@ def create_app(test_config: Optional[Dict[str, Any]] = None) -> Flask:
 
     app.url_build_error_handlers.append(handle_url_build_error)
 
+    # 5b. Jinja Context Processors
+    from storista.services.github_service import is_vault_path
+
+    @app.context_processor
+    def inject_utilities():
+        return {
+            "is_vault_path": is_vault_path,
+        }
+
     # 6. Global Error Handlers (with API content negotiation)
     def is_api_or_json_request() -> bool:
         """Helper to determine if request expects JSON vs HTML response."""

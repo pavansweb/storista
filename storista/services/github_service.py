@@ -780,6 +780,114 @@ class GitHubService:
         self.cache.invalidate_folder_and_relations(norm_path)
         return True
 
+    def move_to_vault(self, file_path: str) -> Dict[str, Any]:
+        """
+        Moves an object (file or directory) from general storage into the private vault (storage/vault/).
+        Handles both individual files and nested directory trees.
+        Invalidates relevant cache paths.
+
+        Raises:
+            PermissionError: If path is root storage folder or outside storage.
+            ValueError: If path is already inside the private vault.
+            FileNotFoundError / GithubException: If item does not exist.
+        """
+        norm_path = self.normalize_storage_path(file_path)
+        if norm_path == "storage":
+            raise PermissionError("Cannot move root storage folder")
+        if is_vault_path(norm_path):
+            raise ValueError("Item is already inside the private vault")
+
+        # Get contents to determine if file or directory
+        contents = self.repo.get_contents(norm_path, ref=self.branch)
+        is_dir = isinstance(contents, list) or getattr(contents, "type", "file") == "dir"
+        item_name = posixpath.basename(norm_path)
+
+        timestamp = datetime.now(UTC).isoformat()
+
+        if is_dir:
+            dest_dir = f"storage/vault/{item_name}"
+            # Recursive directory move
+            self._move_directory_recursive(norm_path, dest_dir)
+            self.cache.invalidate_folder_and_relations(norm_path)
+            self.cache.invalidate_folder_and_relations(dest_dir)
+            return {
+                "name": item_name,
+                "source": norm_path,
+                "destination": dest_dir,
+                "is_dir": True,
+            }
+        else:
+            dest_path = f"storage/vault/{item_name}"
+            # Read full file bytes
+            _, _, _, chunks = self.stream_file(norm_path)
+            file_data = b"".join(chunks)
+
+            # Create file in vault
+            commit_msg_create = f"Move '{item_name}' to vault @ {timestamp}"
+            try:
+                existing_dest = self.repo.get_contents(dest_path, ref=self.branch)
+                if getattr(existing_dest, "type", "file") == "dir":
+                    raise IsADirectoryError(f"A directory with name '{item_name}' already exists in the vault.")
+                self.repo.update_file(dest_path, commit_msg_create, file_data, existing_dest.sha, branch=self.branch)
+            except GithubException as e:
+                if e.status == 404:
+                    self.repo.create_file(dest_path, commit_msg_create, file_data, branch=self.branch)
+                else:
+                    raise
+
+            # Delete file from original path
+            commit_msg_del = f"Remove '{item_name}' after moving to vault @ {timestamp}"
+            self.repo.delete_file(norm_path, commit_msg_del, contents.sha, branch=self.branch)
+
+            # Invalidate parent directory and vault in cache
+            parent_folder = norm_path.rsplit("/", 1)[0]
+            self.cache.invalidate(parent_folder)
+            self.cache.invalidate("storage/vault")
+
+            return {
+                "name": item_name,
+                "source": norm_path,
+                "destination": dest_path,
+                "is_dir": False,
+            }
+
+    def _move_directory_recursive(self, src_dir: str, dest_dir: str) -> None:
+        """Recursively copies all items from src_dir to dest_dir and removes them from src_dir."""
+        contents = self.repo.get_contents(src_dir, ref=self.branch)
+        if not isinstance(contents, list):
+            contents = [contents]
+
+        timestamp = datetime.now(UTC).isoformat()
+        has_items = False
+        for item in contents:
+            has_items = True
+            rel_sub = posixpath.relpath(item.path, src_dir)
+            target_path = f"{dest_dir}/{rel_sub}"
+            if getattr(item, "type", "file") == "dir":
+                self._move_directory_recursive(item.path, target_path)
+            else:
+                _, _, _, chunks = self.stream_file(item.path)
+                data = b"".join(chunks)
+                msg_create = f"Move '{item.name}' to vault @ {timestamp}"
+                try:
+                    existing = self.repo.get_contents(target_path, ref=self.branch)
+                    self.repo.update_file(target_path, msg_create, data, existing.sha, branch=self.branch)
+                except GithubException as e:
+                    if e.status == 404:
+                        self.repo.create_file(target_path, msg_create, data, branch=self.branch)
+                    else:
+                        raise
+                msg_del = f"Remove '{item.path}' after moving to vault @ {timestamp}"
+                self.repo.delete_file(item.path, msg_del, item.sha, branch=self.branch)
+
+        if not has_items:
+            target_gitkeep = f"{dest_dir}/.gitkeep"
+            try:
+                self.repo.create_file(target_gitkeep, f"Create folder placeholder @ {timestamp}", b"", branch=self.branch)
+            except GithubException:
+                pass
+
+
     def download_from_url(self, url: str, max_size: int) -> Tuple[str, bytes]:
         """Safely download remote file using SSRF validation and bounded streaming."""
         return safe_download_from_url(url=url, max_size=max_size)

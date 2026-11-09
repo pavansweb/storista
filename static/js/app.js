@@ -445,6 +445,86 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   // ==========================================================================
+  // 6b. Move to Private Vault & Native Modal
+  // ==========================================================================
+  const moveToVaultModal = document.getElementById('moveToVaultModal');
+  const moveVaultTargetName = document.getElementById('moveVaultTargetName');
+  const moveVaultFolderNotice = document.getElementById('moveVaultFolderNotice');
+  const cancelMoveVaultBtn = document.getElementById('cancelMoveVaultBtn');
+  const confirmMoveVaultBtn = document.getElementById('confirmMoveVaultBtn');
+
+  let activeMoveTarget = null; // { path, isFolder, name }
+
+  document.addEventListener('click', (e) => {
+    const btn = e.target.closest('.btn-move-vault');
+    if (!btn) return;
+
+    const path = btn.dataset.path || '';
+    const isFolder = btn.dataset.type === 'folder';
+    const name = btn.dataset.name || path.split('/').pop();
+
+    activeMoveTarget = { path, isFolder, name };
+
+    if (moveVaultTargetName) moveVaultTargetName.textContent = name;
+    if (moveVaultFolderNotice) {
+      moveVaultFolderNotice.classList.toggle('d-none', !isFolder);
+    }
+
+    if (confirmMoveVaultBtn) {
+      confirmMoveVaultBtn.disabled = false;
+      confirmMoveVaultBtn.innerHTML = '<i class="bi bi-shield-lock-fill me-1" aria-hidden="true"></i> Move to Vault';
+    }
+
+    moveToVaultModal?.showModal();
+    cancelMoveVaultBtn?.focus();
+  });
+
+  cancelMoveVaultBtn?.addEventListener('click', () => moveToVaultModal?.close());
+
+  moveToVaultModal?.addEventListener('click', (e) => {
+    const rect = moveToVaultModal.getBoundingClientRect();
+    const isInDialog = (
+      rect.top <= e.clientY && e.clientY <= rect.top + rect.height &&
+      rect.left <= e.clientX && e.clientX <= rect.left + rect.width
+    );
+    if (!isInDialog) moveToVaultModal.close();
+  });
+
+  confirmMoveVaultBtn?.addEventListener('click', async () => {
+    if (!activeMoveTarget) return;
+    const { path, isFolder, name } = activeMoveTarget;
+
+    confirmMoveVaultBtn.disabled = true;
+    confirmMoveVaultBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span> Moving to Vault...';
+
+    try {
+      const res = await fetch('/api/vault/move', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
+        },
+        body: JSON.stringify({ path })
+      });
+
+      if (res.ok) {
+        moveToVaultModal?.close();
+        showToast('success', `'${name}' moved to Private Vault successfully! 🔐`);
+        setTimeout(() => location.reload(), 400);
+      } else {
+        const data = await res.json().catch(() => ({}));
+        showToast('danger', data.error || 'Failed to move item to vault.');
+        confirmMoveVaultBtn.disabled = false;
+        confirmMoveVaultBtn.innerHTML = '<i class="bi bi-shield-lock-fill me-1" aria-hidden="true"></i> Move to Vault';
+      }
+    } catch (_) {
+      showToast('danger', 'Network error while moving to vault.');
+      confirmMoveVaultBtn.disabled = false;
+      confirmMoveVaultBtn.innerHTML = '<i class="bi bi-shield-lock-fill me-1" aria-hidden="true"></i> Move to Vault';
+    }
+  });
+
+  // ==========================================================================
   // 7. New Folder Modal Dialog
   // ==========================================================================
   const newFolderModal = document.getElementById('newFolderModal');

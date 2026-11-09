@@ -429,6 +429,18 @@
                   </a>
                 {% endif %}
 
+                {% if not is_vault_path(f.path) and f.name != 'vault' %}
+                  <button type="button"
+                          class="btn-glass btn-icon-only btn-vault-glass btn-move-vault"
+                          data-path="{{ f.path }}"
+                          data-type="{{ 'folder' if f.is_dir else 'file' }}"
+                          data-name="{{ f.name }}"
+                          title="Move to Private Vault"
+                          aria-label="Move {{ f.name }} to Private Vault">
+                    <i class="bi bi-shield-lock" aria-hidden="true"></i>
+                  </button>
+                {% endif %}
+
                 <button type="button"
                         class="btn-glass btn-icon-only btn-danger-glass btn-delete"
                         data-path="{{ f.path }}"
@@ -606,6 +618,39 @@
           </a>
         </div>
       </div>
+    </div>
+  </div>
+</dialog>
+
+<!-- 4. Move to Vault Confirmation Dialog -->
+<dialog id="moveToVaultModal" class="glass-dialog" aria-labelledby="moveVaultModalTitle" aria-describedby="moveVaultModalDesc">
+  <div class="dialog-content">
+    <div class="d-flex align-items-center gap-3 mb-3">
+      <div class="icon-badge-vault" aria-hidden="true">
+        <i class="bi bi-shield-lock-fill fs-4"></i>
+      </div>
+      <div>
+        <h3 id="moveVaultModalTitle" class="m-0 fw-bold text-white fs-5">Move to Private Vault</h3>
+        <div class="small text-muted">Protect with password</div>
+      </div>
+    </div>
+
+    <div class="dialog-body mb-4">
+      <p id="moveVaultModalDesc" class="text-secondary mb-2">
+        Are you sure you want to move <strong id="moveVaultTargetName" class="text-white"></strong> into your password-protected Private Vault?
+      </p>
+      <div id="moveVaultFolderNotice" class="alert alert-warning bg-warning bg-opacity-10 border-warning border-opacity-25 rounded-3 py-2 px-3 small text-warning d-none">
+        <i class="bi bi-exclamation-triangle-fill me-1" aria-hidden="true"></i>
+        <strong>Directory Move:</strong> All files and subdirectories inside this folder will be relocated into the vault.
+      </div>
+      <p class="small text-muted mb-0">Once moved, this object will require the vault password to view or download.</p>
+    </div>
+
+    <div class="dialog-actions d-flex justify-content-end gap-2">
+      <button type="button" id="cancelMoveVaultBtn" class="btn-glass">Cancel</button>
+      <button type="button" id="confirmMoveVaultBtn" class="btn-glass btn-vault-glass">
+        <i class="bi bi-shield-lock-fill me-1" aria-hidden="true"></i> Move to Vault
+      </button>
     </div>
   </div>
 </dialog>

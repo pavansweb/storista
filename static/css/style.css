@@ -500,6 +500,19 @@ body.app-body {
   color: #fff;
 }
 
+.btn-vault-glass {
+  background: rgba(245, 158, 11, 0.12);
+  color: #fbbf24;
+  border-color: rgba(245, 158, 11, 0.3);
+}
+.btn-vault-glass:hover,
+.btn-vault-glass:focus-visible {
+  background: rgba(245, 158, 11, 0.25);
+  color: #fef3c7;
+  border-color: rgba(245, 158, 11, 0.5);
+  box-shadow: 0 0 16px rgba(245, 158, 11, 0.3);
+}
+
 .btn-outline-glass {
   background: transparent;
   border-color: var(--glass-border);
@@ -1066,6 +1079,19 @@ dialog[open] {
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
+}
+
+.icon-badge-vault {
+  width: 48px;
+  height: 48px;
+  border-radius: 16px;
+  background: rgba(245, 158, 11, 0.12);
+  border: 1px solid rgba(245, 158, 11, 0.25);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  color: #fbbf24;
 }
 
 /* ==========================================================================

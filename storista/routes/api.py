@@ -201,3 +201,50 @@ def download_file(file_path: str):
         return jsonify({"error": extract_github_error_message(e)}), status_code
     except Exception as e:
         return jsonify({"error": str(e)}), 404
+
+
+@api_bp.route("/api/vault/move", methods=["POST"])
+def move_to_vault():
+    """
+    Move a file or folder into the private vault (storage/vault/).
+    Accepts JSON payload: {"path": "file.txt"} or form parameter.
+    Returns 400 if item is already in vault or path is missing.
+    Returns 403 if path lies outside storage sandbox.
+    """
+    payload = request.get_json(silent=True) or {}
+    item_path = payload.get("path") or request.form.get("path", "").strip()
+
+    if not item_path:
+        return jsonify({"error": "Missing required 'path' parameter"}), 400
+
+    service = get_github_service()
+    try:
+        norm_path = normalize_storage_path(item_path)
+    except PermissionError:
+        return jsonify({"error": "Access denied"}), 403
+
+    if norm_path == "storage":
+        return jsonify({"error": "Cannot move root storage directory"}), 403
+
+    if is_vault_path(norm_path):
+        return jsonify({"error": "Item is already inside the private vault"}), 400
+
+    try:
+        result = service.move_to_vault(item_path)
+        return jsonify({
+            "status": "success",
+            "message": f"'{result['name']}' moved to Private Vault successfully",
+            "name": result["name"],
+            "destination": result["destination"],
+            "is_dir": result["is_dir"]
+        }), 200
+    except PermissionError as e:
+        return jsonify({"error": str(e)}), 403
+    except (FileNotFoundError, IsADirectoryError, ValueError) as e:
+        return jsonify({"error": str(e)}), 400
+    except GithubException as e:
+        status_code = e.status if e.status and 400 <= e.status < 600 else 500
+        return jsonify({"error": extract_github_error_message(e)}), status_code
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
