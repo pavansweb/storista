@@ -1,0 +1,1350 @@
+/**
+ * Storista — Modern Responsive Glassmorphism Stylesheet
+ * static/css/style.css
+ * Features 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24
+ */
+
+/* ==========================================================================
+   1. Design Tokens & CSS Variables
+   ========================================================================== */
+:root {
+  --bg-dark: #020617;
+  --bg-surface: rgba(15, 23, 42, 0.75);
+  --glass-bg: rgba(255, 255, 255, 0.03);
+  --glass-border: rgba(255, 255, 255, 0.08);
+  --glass-border-hover: rgba(255, 255, 255, 0.16);
+  --glass-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.45);
+  --primary: #818cf8;
+  --primary-hover: #6366f1;
+  --primary-glow: rgba(129, 140, 248, 0.25);
+  --accent-indigo: #4f46e5;
+  --accent-purple: #c084fc;
+  --accent-rose: #f43f5e;
+  --accent-emerald: #10b981;
+  --accent-amber: #f59e0b;
+  --text-main: #f8fafc;
+  --text-muted: #94a3b8;
+  --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-heading: 'Plus Jakarta Sans', 'Inter', sans-serif;
+  --radius-sm: 8px;
+  --radius-md: 14px;
+  --radius-lg: 20px;
+  --radius-xl: 28px;
+}
+
+/* ==========================================================================
+   2. Reset, Base & Global Layout
+   ========================================================================== */
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html, body {
+  max-width: 100%;
+  overflow-x: hidden;
+  -webkit-text-size-adjust: 100%;
+}
+
+body.app-body {
+  background: var(--bg-dark);
+  color: var(--text-main);
+  font-family: var(--font-sans);
+  min-height: 100vh;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Screen Reader Only Utility */
+.visually-hidden {
+  position: absolute !important;
+  width: 1px !important;
+  height: 1px !important;
+  padding: 0 !important;
+  margin: -1px !important;
+  overflow: hidden !important;
+  clip: rect(0, 0, 0, 0) !important;
+  white-space: nowrap !important;
+  border: 0 !important;
+}
+
+/* WCAG 2.4.7 High-Contrast Visible Focus Outlines */
+:focus {
+  outline: none;
+}
+
+:focus-visible {
+  outline: 2px solid var(--primary) !important;
+  outline-offset: 2px !important;
+  box-shadow: 0 0 0 4px rgba(129, 140, 248, 0.35) !important;
+  border-radius: inherit;
+}
+
+.btn-glass:focus-visible,
+.btn-icon-only:focus-visible,
+.filter-pill:focus-visible,
+.sort-select:focus-visible,
+.search-input:focus-visible,
+.input-clean:focus-visible,
+.drop-zone:focus-visible,
+.file-name:focus-visible {
+  outline: 2px solid var(--primary) !important;
+  outline-offset: 2px !important;
+  box-shadow: 0 0 0 4px rgba(129, 140, 248, 0.45) !important;
+}
+
+/* Ambient Animated Orbs */
+.ambient-orbs {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: -1;
+  overflow: hidden;
+}
+
+.orb {
+  position: absolute;
+  width: 50vmax;
+  height: 50vmax;
+  border-radius: 50%;
+  filter: blur(140px);
+  opacity: 0.22;
+  animation: orbFloat 22s infinite alternate cubic-bezier(0.45, 0.05, 0.55, 0.95);
+}
+
+.orb-1 {
+  background: var(--accent-indigo);
+  top: -15%;
+  left: -15%;
+}
+
+.orb-2 {
+  background: var(--accent-purple);
+  bottom: -15%;
+  right: -15%;
+  animation-delay: -9s;
+}
+
+@keyframes orbFloat {
+  0% { transform: translate(0, 0) scale(1); }
+  100% { transform: translate(12%, 18%) scale(1.15); }
+}
+
+.app-layout {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ==========================================================================
+   3. Landmark: Header & Branding (Feature 11)
+   ========================================================================== */
+.app-header {
+  height: 60px;
+  background: rgba(2, 6, 23, 0.75);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border-bottom: 1px solid var(--glass-border);
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+}
+
+.header-inner {
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 1.25rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.brand-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.75rem;
+  text-decoration: none;
+  color: var(--text-main);
+}
+
+.brand-icon-wrapper {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  background: linear-gradient(135deg, var(--accent-indigo), var(--primary));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  font-size: 1.2rem;
+  box-shadow: 0 0 16px var(--primary-glow);
+}
+
+.brand-name {
+  font-family: var(--font-heading);
+  font-weight: 800;
+  font-size: 1.35rem;
+  letter-spacing: -0.5px;
+  background: linear-gradient(135deg, #fff 0%, #cbd5e1 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.brand-tagline {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  font-weight: 500;
+  padding-left: 0.5rem;
+  border-left: 1px solid var(--glass-border);
+}
+
+.header-status {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.status-indicator {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  padding: 0.35rem 0.8rem;
+  border-radius: 99px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid var(--glass-border);
+}
+
+.status-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--accent-emerald);
+  box-shadow: 0 0 8px var(--accent-emerald);
+}
+
+.vault-status-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.8rem;
+  font-weight: 600;
+  padding: 0.35rem 0.8rem;
+  border-radius: 99px;
+}
+
+.vault-status-pill.locked {
+  background: rgba(244, 63, 94, 0.15);
+  color: var(--accent-rose);
+  border: 1px solid rgba(244, 63, 94, 0.3);
+}
+
+.vault-status-pill.unlocked {
+  background: rgba(16, 185, 129, 0.15);
+  color: var(--accent-emerald);
+  border: 1px solid rgba(16, 185, 129, 0.3);
+}
+
+/* ==========================================================================
+   4. Landmark: Alerts Wrapper & Shared Notifications
+   ========================================================================== */
+.alerts-wrapper {
+  width: 100%;
+  max-width: 1200px;
+  margin: 1.25rem auto 0;
+  padding: 0 1.25rem;
+}
+
+.glass-alert {
+  background: rgba(15, 23, 42, 0.85);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-md);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.85rem 1.25rem;
+  box-shadow: var(--glass-shadow);
+  margin-bottom: 0.75rem;
+}
+
+.glass-alert .alert-icon {
+  font-size: 1.2rem;
+  flex-shrink: 0;
+}
+
+.glass-alert .alert-message {
+  flex-grow: 1;
+  font-size: 0.925rem;
+}
+
+.glass-alert.alert-danger {
+  border-color: rgba(244, 63, 94, 0.4);
+  background: rgba(244, 63, 94, 0.08);
+  color: #fecdd3;
+}
+.glass-alert.alert-danger .alert-icon { color: var(--accent-rose); }
+
+.glass-alert.alert-success {
+  border-color: rgba(16, 185, 129, 0.4);
+  background: rgba(16, 185, 129, 0.08);
+  color: #a7f3d0;
+}
+.glass-alert.alert-success .alert-icon { color: var(--accent-emerald); }
+
+.glass-alert.alert-warning {
+  border-color: rgba(245, 158, 11, 0.4);
+  background: rgba(245, 158, 11, 0.08);
+  color: #fde68a;
+}
+.glass-alert.alert-warning .alert-icon { color: var(--accent-amber); }
+
+.glass-alert.alert-info {
+  border-color: rgba(129, 140, 248, 0.4);
+  background: rgba(129, 140, 248, 0.08);
+  color: #c7d2fe;
+}
+.glass-alert.alert-info .alert-icon { color: var(--primary); }
+
+/* ==========================================================================
+   5. Landmark: Main Content & Glass Cards
+   ========================================================================== */
+.app-main {
+  flex: 1;
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 1.5rem 1.25rem 3rem;
+  outline: none;
+}
+
+.glass-card {
+  background: var(--glass-bg);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--glass-shadow);
+  padding: 1.75rem;
+  transition: border-color 0.25s;
+}
+
+.glass-card:hover {
+  border-color: rgba(255, 255, 255, 0.12);
+}
+
+.fade-up {
+  animation: fadeInUp 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* ==========================================================================
+   6. Compact Action Toolbar (Feature 21)
+   ========================================================================== */
+.action-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.65rem 1rem;
+  background: rgba(0, 0, 0, 0.35);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-md);
+  margin-bottom: 1.25rem;
+}
+
+.breadcrumb-container {
+  display: flex;
+  align-items: center;
+  overflow-x: auto;
+  white-space: nowrap;
+  font-size: 0.9rem;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+.breadcrumb-container::-webkit-scrollbar { display: none; }
+
+.breadcrumb-list {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.breadcrumb-link,
+.breadcrumb-current {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  padding: 0.25rem 0.5rem;
+  border-radius: 8px;
+  text-decoration: none;
+}
+
+.breadcrumb-link {
+  color: var(--primary);
+  font-weight: 600;
+  transition: color 0.2s;
+}
+.breadcrumb-link:hover { color: #fff; }
+.breadcrumb-link.active { color: #fff; font-weight: 700; }
+
+.breadcrumb-current {
+  color: #fff;
+  font-weight: 700;
+}
+
+.breadcrumb-separator {
+  color: var(--text-muted);
+  opacity: 0.6;
+  user-select: none;
+}
+
+.btn-icon-nav {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  min-width: 44px;
+  height: 44px;
+  min-height: 44px;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--text-main);
+  text-decoration: none;
+  border: 1px solid var(--glass-border);
+  transition: all 0.2s;
+}
+.btn-icon-nav:hover {
+  background: rgba(255, 255, 255, 0.12);
+  color: var(--primary);
+}
+
+.toolbar-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-shrink: 0;
+}
+
+/* Standard Glass Buttons */
+.btn-glass {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  min-height: 44px;
+  padding: 0.5rem 1rem;
+  border-radius: 12px;
+  font-size: 0.875rem;
+  font-weight: 600;
+  border: 1px solid var(--glass-border);
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--text-main);
+  text-decoration: none;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  user-select: none;
+}
+
+.btn-glass.btn-sm {
+  min-height: 44px;
+  min-width: 44px;
+  padding: 0.5rem 0.9rem;
+  font-size: 0.85rem;
+}
+
+.btn-glass:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: #fff;
+}
+
+.btn-primary-glass {
+  background: linear-gradient(135deg, var(--accent-indigo), var(--primary));
+  border-color: transparent;
+  color: #fff;
+  box-shadow: 0 4px 14px var(--primary-glow);
+}
+.btn-primary-glass:hover {
+  background: linear-gradient(135deg, var(--accent-indigo), var(--primary-hover));
+  color: #fff;
+  box-shadow: 0 6px 18px rgba(129, 140, 248, 0.4);
+}
+
+.btn-secondary-glass {
+  background: rgba(255, 255, 255, 0.06);
+  color: #fff;
+}
+
+.btn-danger-glass {
+  background: rgba(244, 63, 94, 0.12);
+  color: #fb7185;
+  border-color: rgba(244, 63, 94, 0.25);
+}
+.btn-danger-glass:hover {
+  background: var(--accent-rose);
+  color: #fff;
+}
+
+.btn-outline-glass {
+  background: transparent;
+  border-color: var(--glass-border);
+  color: var(--text-muted);
+}
+.btn-outline-glass:hover {
+  border-color: rgba(255, 255, 255, 0.2);
+  color: #fff;
+}
+
+.btn-icon-only {
+  width: 44px;
+  min-width: 44px;
+  height: 44px;
+  min-height: 44px;
+  padding: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 12px;
+}
+
+/* ==========================================================================
+   7. Collapsible Upload Drawer (Features 12, 13, 17)
+   ========================================================================== */
+.upload-drawer {
+  margin-bottom: 1.25rem;
+}
+
+.upload-panel {
+  background: rgba(0, 0, 0, 0.28);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-lg);
+}
+
+.upload-tabs {
+  background: rgba(0, 0, 0, 0.35);
+  border: 1px solid var(--glass-border);
+  border-radius: 14px;
+  padding: 4px;
+  display: inline-flex;
+  gap: 4px;
+}
+
+.tab-btn {
+  background: transparent;
+  border: none;
+  border-radius: 10px;
+  min-height: 44px;
+  min-width: 44px;
+  padding: 0.5rem 1rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  transition: all 0.2s ease;
+}
+.tab-btn:hover { color: #fff; }
+.tab-btn.active {
+  background: var(--primary);
+  color: #fff;
+  box-shadow: 0 4px 15px rgba(129, 140, 248, 0.3);
+}
+
+.drop-zone {
+  border: 2px dashed var(--glass-border);
+  border-radius: 18px;
+  padding: 2.25rem 1.5rem;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  background: rgba(255, 255, 255, 0.015);
+  position: relative;
+}
+.drop-zone:hover {
+  border-color: var(--primary);
+  background: rgba(129, 140, 248, 0.04);
+}
+.drop-zone.drag-active {
+  border-color: var(--primary);
+  background: rgba(129, 140, 248, 0.12);
+  box-shadow: 0 0 35px rgba(129, 140, 248, 0.35), inset 0 0 20px rgba(129, 140, 248, 0.15);
+  transform: scale(1.015);
+}
+.drop-zone * {
+  pointer-events: none;
+}
+.drop-zone i {
+  font-size: 2.5rem;
+  color: var(--primary);
+}
+
+.selected-file-inner {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid var(--glass-border);
+}
+
+#clearFileBtn {
+  width: 44px !important;
+  min-width: 44px !important;
+  height: 44px !important;
+  min-height: 44px !important;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.url-import-box {
+  background: rgba(0, 0, 0, 0.3);
+  border: 1px solid var(--glass-border);
+}
+
+.input-clean {
+  background: rgba(0, 0, 0, 0.4);
+  border: 1px solid var(--glass-border);
+  border-radius: 12px;
+  padding: 0.75rem 1rem;
+  color: #fff;
+  font-size: 0.95rem;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+.input-clean:focus {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(129, 140, 248, 0.2);
+  color: #fff;
+  background: rgba(0, 0, 0, 0.55);
+}
+
+/* Custom Progress Bar (Feature 17) */
+progress.progress-bar-custom {
+  appearance: none;
+  -webkit-appearance: none;
+  height: 8px;
+  border-radius: 999px;
+  overflow: hidden;
+  background: rgba(255, 255, 255, 0.1);
+  border: none;
+}
+progress.progress-bar-custom::-webkit-progress-bar {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 999px;
+}
+progress.progress-bar-custom::-webkit-progress-value {
+  background: linear-gradient(90deg, var(--accent-indigo), var(--primary));
+  border-radius: 999px;
+  transition: width 0.15s ease;
+}
+progress.progress-bar-custom::-moz-progress-bar {
+  background: linear-gradient(90deg, var(--accent-indigo), var(--primary));
+  border-radius: 999px;
+}
+
+/* ==========================================================================
+   8. Browser Section: Toolbar, Filter Pills & Search (Features 19, 20, 23)
+   ========================================================================== */
+.browser-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1.25rem;
+}
+
+.panel-title {
+  font-family: var(--font-heading);
+  font-weight: 700;
+  font-size: 1.25rem;
+  color: #fff;
+  display: flex;
+  align-items: center;
+}
+
+.stat-pill {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid var(--glass-border);
+  border-radius: 99px;
+  padding: 0.35rem 0.8rem;
+  font-size: 0.85rem;
+  color: var(--text-muted);
+}
+.stat-pill strong { color: #fff; }
+
+.sort-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.sort-select {
+  min-height: 44px;
+  min-width: 44px;
+  background: rgba(0, 0, 0, 0.4);
+  color: #fff;
+  border: 1px solid var(--glass-border);
+  border-radius: 10px;
+  padding: 0.45rem 2rem 0.45rem 0.85rem;
+  font-size: 0.85rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: border-color 0.2s;
+}
+.sort-select:focus { border-color: var(--primary); }
+
+/* Category Filter Pills */
+.filter-bar {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 1.25rem;
+  overflow-x: auto;
+  white-space: nowrap;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+  padding-bottom: 0.25rem;
+}
+.filter-bar::-webkit-scrollbar { display: none; }
+
+.filter-pill {
+  min-height: 44px;
+  padding: 0.45rem 0.95rem;
+  border-radius: 99px;
+  border: 1px solid var(--glass-border);
+  background: rgba(255, 255, 255, 0.03);
+  color: var(--text-muted);
+  font-size: 0.875rem;
+  font-weight: 500;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  user-select: none;
+}
+.filter-pill:hover {
+  background: rgba(255, 255, 255, 0.08);
+  color: #fff;
+  border-color: rgba(255, 255, 255, 0.2);
+}
+.filter-pill.active {
+  background: rgba(129, 140, 248, 0.15);
+  border-color: var(--primary);
+  color: #fff;
+  box-shadow: 0 0 12px rgba(129, 140, 248, 0.25);
+}
+
+.filter-badge {
+  background: rgba(255, 255, 255, 0.1);
+  padding: 0.12rem 0.5rem;
+  border-radius: 99px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: #fff;
+}
+.filter-pill.active .filter-badge {
+  background: var(--primary);
+  color: #fff;
+}
+
+/* Search Bar (Feature 20) */
+.search-wrapper {
+  position: relative;
+  margin-bottom: 1.25rem;
+}
+
+.search-input {
+  width: 100%;
+  min-height: 48px;
+  background: rgba(0, 0, 0, 0.4);
+  border: 1px solid var(--glass-border);
+  border-radius: 16px;
+  padding: 0.85rem 3.5rem 0.85rem 3.25rem;
+  color: #fff;
+  font-size: 0.95rem;
+  transition: all 0.25s;
+}
+.search-input:focus {
+  border-color: var(--primary);
+  background: rgba(0, 0, 0, 0.55);
+  box-shadow: 0 0 0 4px rgba(129, 140, 248, 0.15);
+}
+
+.search-icon {
+  position: absolute;
+  left: 1.15rem;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--text-muted);
+  font-size: 1.15rem;
+  pointer-events: none;
+}
+
+.search-kbd-badge {
+  position: absolute;
+  right: 1.15rem;
+  top: 50%;
+  transform: translateY(-50%);
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid var(--glass-border);
+  border-radius: 6px;
+  padding: 0.2rem 0.55rem;
+  font-family: inherit;
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  pointer-events: none;
+}
+
+.search-clear-btn {
+  position: absolute;
+  right: 0.5rem;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 44px;
+  min-width: 44px;
+  height: 44px;
+  min-height: 44px;
+  border-radius: 10px;
+  border: none;
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--text-muted);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.search-clear-btn:hover {
+  background: rgba(255, 255, 255, 0.18);
+  color: #fff;
+}
+
+/* Empty Search State */
+.empty-state-card {
+  text-align: center;
+  padding: 3rem 1.5rem;
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px dashed var(--glass-border);
+  border-radius: 20px;
+  margin-top: 1rem;
+}
+.empty-state-icon {
+  font-size: 2.8rem;
+  color: var(--text-muted);
+  margin-bottom: 0.75rem;
+}
+.empty-state-title {
+  font-family: var(--font-heading);
+  font-weight: 700;
+  margin-bottom: 0.35rem;
+  color: #fff;
+}
+.empty-state-msg {
+  color: var(--text-muted);
+  font-size: 0.925rem;
+  margin-bottom: 1.25rem;
+}
+.empty-state-msg strong { color: var(--primary); }
+
+.btn-reset-search {
+  background: rgba(129, 140, 248, 0.12);
+  color: var(--primary);
+  border-color: rgba(129, 140, 248, 0.25);
+  margin: 0 auto;
+}
+.btn-reset-search:hover {
+  background: var(--primary);
+  color: #fff;
+}
+
+/* ==========================================================================
+   9. Dynamic MIME Type Iconography (Feature 15)
+   ========================================================================== */
+.file-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.45rem;
+  flex-shrink: 0;
+  transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.2s ease;
+}
+
+.file-item:hover .file-icon {
+  transform: scale(1.08);
+}
+
+.file-icon-gold    { color: #fbbf24; background: rgba(245, 158, 11, 0.12); border: 1px solid rgba(245, 158, 11, 0.25); }
+.file-icon-emerald { color: #34d399; background: rgba(16, 185, 129, 0.12); border: 1px solid rgba(16, 185, 129, 0.25); }
+.file-icon-rose    { color: #fb7185; background: rgba(244, 63, 94, 0.12); border: 1px solid rgba(244, 63, 94, 0.25); }
+.file-icon-sky     { color: #38bdf8; background: rgba(14, 165, 233, 0.12); border: 1px solid rgba(14, 165, 233, 0.25); }
+.file-icon-violet  { color: #a78bfa; background: rgba(139, 92, 246, 0.12); border: 1px solid rgba(139, 92, 246, 0.25); }
+.file-icon-amber   { color: #f59e0b; background: rgba(245, 158, 11, 0.12); border: 1px solid rgba(245, 158, 11, 0.25); }
+.file-icon-slate   { color: #cbd5e1; background: rgba(148, 163, 184, 0.12); border: 1px solid rgba(148, 163, 184, 0.25); }
+.file-icon-pink    { color: #f472b6; background: rgba(236, 72, 153, 0.12); border: 1px solid rgba(236, 72, 153, 0.25); }
+.file-icon-indigo  { color: #a5b4fc; background: rgba(129, 140, 248, 0.12); border: 1px solid rgba(129, 140, 248, 0.25); }
+
+.file-item:hover .file-icon-gold    { box-shadow: 0 0 16px rgba(245, 158, 11, 0.35); }
+.file-item:hover .file-icon-emerald { box-shadow: 0 0 16px rgba(16, 185, 129, 0.35); }
+.file-item:hover .file-icon-rose    { box-shadow: 0 0 16px rgba(244, 63, 94, 0.35); }
+.file-item:hover .file-icon-sky     { box-shadow: 0 0 16px rgba(14, 165, 233, 0.35); }
+.file-item:hover .file-icon-violet  { box-shadow: 0 0 16px rgba(139, 92, 246, 0.35); }
+.file-item:hover .file-icon-amber   { box-shadow: 0 0 16px rgba(245, 158, 11, 0.35); }
+.file-item:hover .file-icon-slate   { box-shadow: 0 0 16px rgba(148, 163, 184, 0.35); }
+.file-item:hover .file-icon-pink    { box-shadow: 0 0 16px rgba(236, 72, 153, 0.35); }
+.file-item:hover .file-icon-indigo  { box-shadow: 0 0 16px rgba(129, 140, 248, 0.35); }
+
+/* ==========================================================================
+   10. File Grid / Items Layout (Features 18, 23)
+   ========================================================================== */
+.file-list-container {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.file-item {
+  display: grid;
+  grid-template-columns: 48px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 1.25rem;
+  padding: 0.9rem 1.25rem;
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid var(--glass-border);
+  border-radius: 16px;
+  min-width: 0;
+  transition: all 0.2s ease;
+}
+
+.file-item:hover {
+  background: rgba(255, 255, 255, 0.05);
+  border-color: rgba(255, 255, 255, 0.14);
+}
+
+.file-item-info {
+  min-width: 0;
+  overflow: hidden;
+}
+
+.file-name {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 100%;
+  min-width: 0;
+  font-weight: 600;
+  font-size: 0.95rem;
+  color: #fff;
+  text-decoration: none;
+  background: none;
+  border: none;
+  padding: 0;
+  margin: 0;
+  transition: color 0.2s;
+}
+.file-name:hover { color: var(--primary); }
+
+.file-name-preview {
+  cursor: pointer;
+  text-align: left;
+  min-height: 44px;
+  min-width: 44px;
+  display: inline-flex;
+  align-items: center;
+}
+
+.file-meta {
+  display: block;
+  font-size: 0.775rem;
+  color: var(--text-muted);
+  margin-top: 0.2rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.file-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-shrink: 0;
+}
+
+/* ==========================================================================
+   11. Native HTML5 <dialog> Modals (Features 14, 16)
+   ========================================================================== */
+dialog.glass-dialog {
+  background: rgba(15, 23, 42, 0.96);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border: 1px solid var(--glass-border);
+  border-radius: 24px;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.75);
+  color: var(--text-main);
+  padding: 2rem;
+  max-width: 500px;
+  width: 90%;
+  margin: auto;
+}
+
+.dialog-close-btn,
+#closePreviewBtn {
+  width: 44px !important;
+  min-width: 44px !important;
+  height: 44px !important;
+  min-height: 44px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
+
+.dialog-actions .btn-glass {
+  min-height: 44px;
+  min-width: 44px;
+  padding: 0.55rem 1.1rem;
+}
+
+dialog.glass-dialog::backdrop {
+  background: rgba(2, 6, 23, 0.8);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+
+dialog.preview-dialog {
+  max-width: 960px;
+  width: 95vw;
+  height: 85vh;
+  max-height: 85vh;
+  padding: 1.5rem;
+}
+
+dialog[open] {
+  animation: dialogFadeIn 0.22s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes dialogFadeIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.icon-badge-danger {
+  width: 48px;
+  height: 48px;
+  border-radius: 16px;
+  background: rgba(244, 63, 94, 0.12);
+  border: 1px solid rgba(244, 63, 94, 0.25);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.icon-badge-primary {
+  width: 48px;
+  height: 48px;
+  border-radius: 16px;
+  background: rgba(129, 140, 248, 0.12);
+  border: 1px solid rgba(129, 140, 248, 0.25);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+/* ==========================================================================
+   12. Floating Glassmorphic Toasts (Feature 17)
+   ========================================================================== */
+.toast-container {
+  pointer-events: none;
+}
+
+.glass-toast {
+  pointer-events: auto;
+  background: rgba(15, 23, 42, 0.94);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid var(--glass-border);
+  border-radius: 16px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.55);
+  margin-top: 0.75rem;
+  min-width: 280px;
+  max-width: 420px;
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.glass-toast.toast-border-success { border-left: 4px solid var(--accent-emerald); }
+.glass-toast.toast-border-danger  { border-left: 4px solid var(--accent-rose); }
+.glass-toast.toast-border-warning { border-left: 4px solid var(--accent-amber); }
+.glass-toast.toast-border-info    { border-left: 4px solid var(--primary); }
+
+.glass-toast.hide {
+  opacity: 0;
+  transform: translateX(100%);
+}
+
+.btn-close-toast {
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  font-size: 1.25rem;
+  cursor: pointer;
+  padding: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  min-width: 44px;
+  height: 44px;
+  min-height: 44px;
+  border-radius: 10px;
+  transition: all 0.2s ease;
+}
+.btn-close-toast:hover { color: #fff; }
+
+/* ==========================================================================
+   13. Vault Locked View Containment (Feature 22)
+   ========================================================================== */
+.vault-locked-wrapper {
+  max-width: 480px;
+  margin: 3rem auto;
+  padding: 0 1rem;
+}
+
+.vault-challenge-card {
+  padding: 3rem 2rem;
+  border-color: rgba(244, 63, 94, 0.3);
+  background: rgba(244, 63, 94, 0.02);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.6), 0 0 30px rgba(244, 63, 94, 0.1);
+  text-align: center;
+}
+
+.vault-shield-icon {
+  width: 72px;
+  height: 72px;
+  margin: 0 auto 1.5rem;
+  border-radius: 20px;
+  background: rgba(244, 63, 94, 0.12);
+  border: 1px solid rgba(244, 63, 94, 0.3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--accent-rose);
+  font-size: 2.2rem;
+  box-shadow: 0 0 24px rgba(244, 63, 94, 0.2);
+}
+
+.vault-title {
+  font-family: var(--font-heading);
+  font-weight: 800;
+  font-size: 1.75rem;
+  color: #fff;
+  margin-bottom: 0.75rem;
+}
+
+.vault-description {
+  color: var(--text-muted);
+  font-size: 0.95rem;
+  margin-bottom: 2rem;
+  line-height: 1.5;
+}
+
+.vault-description code {
+  color: var(--primary);
+  background: rgba(0, 0, 0, 0.4);
+  padding: 0.15rem 0.4rem;
+  border-radius: 6px;
+}
+
+.vault-label {
+  display: block;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: var(--text-muted);
+  font-weight: 700;
+  margin-bottom: 0.75rem;
+}
+
+/* ==========================================================================
+   14. Error Page View
+   ========================================================================== */
+.error-container {
+  max-width: 520px;
+  margin: 3rem auto;
+  padding: 0 1rem;
+}
+
+.error-card {
+  padding: 3rem 2rem;
+  border-color: rgba(244, 63, 94, 0.3);
+  text-align: center;
+}
+
+.error-icon-wrapper {
+  width: 72px;
+  height: 72px;
+  margin: 0 auto 1.5rem;
+  border-radius: 20px;
+  background: rgba(244, 63, 94, 0.12);
+  border: 1px solid rgba(244, 63, 94, 0.3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--accent-rose);
+  font-size: 2.2rem;
+}
+
+.error-title {
+  font-family: var(--font-heading);
+  font-weight: 800;
+  font-size: 1.75rem;
+  color: #fff;
+  margin-bottom: 0.75rem;
+}
+
+.error-description {
+  color: var(--text-muted);
+  font-size: 0.95rem;
+  margin-bottom: 2rem;
+  line-height: 1.5;
+}
+
+/* ==========================================================================
+   15. Landmark: Footer
+   ========================================================================== */
+.app-footer {
+  height: 50px;
+  border-top: 1px solid var(--glass-border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: auto;
+}
+
+.footer-text {
+  font-size: 0.825rem;
+  color: var(--text-muted);
+  margin: 0;
+}
+
+/* ==========================================================================
+   16. Viewport Responsive Rules (Feature 18)
+   ========================================================================== */
+/* Tablet Breakpoint (640px - 1024px) */
+@media (min-width: 640px) and (max-width: 1024px) {
+  .app-main {
+    padding: 1.25rem 1rem 2.5rem;
+  }
+  .glass-card {
+    padding: 1.5rem 1.25rem;
+  }
+  .file-item {
+    gap: 1rem;
+    padding: 0.85rem 1rem;
+  }
+}
+
+/* Mobile Breakpoint (< 640px) */
+@media (max-width: 639.98px) {
+  .app-header {
+    height: 56px;
+  }
+  .app-main {
+    padding: 1rem 0.75rem 2rem;
+  }
+  .glass-card {
+    padding: 1.25rem 0.85rem;
+    border-radius: 20px;
+  }
+
+  .action-toolbar {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.75rem;
+    padding: 0.75rem;
+  }
+  .toolbar-actions {
+    justify-content: stretch;
+    gap: 0.5rem;
+  }
+  .toolbar-actions .btn-glass {
+    flex: 1;
+    min-height: 44px;
+    min-width: 44px;
+  }
+
+  .browser-toolbar {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.75rem;
+  }
+
+  /* Responsive wrapping layout for file item on narrow screens */
+  .file-item {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.85rem;
+  }
+
+  .file-icon {
+    width: 44px;
+    height: 44px;
+    flex-shrink: 0;
+    font-size: 1.25rem;
+  }
+
+  .file-item-info {
+    flex: 1 1 calc(100% - 44px - 1rem);
+    min-width: 0;
+  }
+
+  .file-actions {
+    width: 100%;
+    justify-content: flex-end;
+    padding-top: 0.5rem;
+    border-top: 1px solid rgba(255, 255, 255, 0.05);
+    gap: 0.65rem;
+  }
+
+  .file-actions .btn-icon-only {
+    width: 44px;
+    min-width: 44px;
+    height: 44px;
+    min-height: 44px;
+  }
+
+  dialog.preview-dialog {
+    width: 98vw;
+    height: 90vh;
+    max-height: 90vh;
+    padding: 1rem;
+  }
+
+  #previewDownloadLink,
+  #previewFallbackDownloadBtn {
+    min-height: 44px;
+    min-width: 44px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+}

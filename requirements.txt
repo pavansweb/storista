@@ -1,5 +1,7 @@
 Flask
 PyGithub
 python-dotenv
+requests
+cachetools
 gunicorn
-supabase
+pytest

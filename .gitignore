@@ -1,4 +1,6 @@
 secrets.txt
+.secret_key
+.agents/
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[codz]

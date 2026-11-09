@@ -1,644 +1,613 @@
-<!doctype html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Storista | Personal Cloud</title>
-  <!-- Frameworks & Fonts -->
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-  <style>
-    :root {
-      --glass-bg: rgba(255, 255, 255, 0.03);
-      --glass-border: rgba(255, 255, 255, 0.08);
-      --glass-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.4);
-      --primary: #818cf8;
-      --primary-hover: #6366f1;
-      --accent-1: #4f46e5;
-      --accent-2: #c084fc;
-      --text-main: #f8fafc;
-      --text-muted: #94a3b8;
-      --bg-dark: #020617;
-    }
+{% extends "base.html" %}
 
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-    }
+{% block title %}
+  {% if needs_auth %}
+    Vault Locked | Storista
+  {% elif current_folder %}
+    {{ current_folder.strip('/').split('/')[-1] }} | Storista
+  {% else %}
+    Storage | Storista
+  {% endif %}
+{% endblock %}
 
-    body {
-      background: var(--bg-dark);
-      color: var(--text-main);
-      font-family: 'Inter', sans-serif;
-      min-height: 100vh;
-      overflow-x: hidden;
-      position: relative;
-    }
+{% block content %}
+<div class="dashboard-wrapper">
+  {% if needs_auth %}
+    <!-- ============================================================== -->
+    <!-- VAULT LOCKED VIEW: CLEANLY CONTAINED SECURITY CHALLENGE        -->
+    <!-- All file browsing, upload forms, and actions are isolated      -->
+    <!-- ============================================================== -->
+    <div class="vault-locked-wrapper fade-up" role="region" aria-label="Vault Security Challenge">
+      <div class="glass-card vault-challenge-card text-center">
+        <div class="vault-shield-icon" aria-hidden="true">
+          <i class="bi bi-shield-lock-fill"></i>
+        </div>
+        <h1 class="vault-title">The Vault is Locked</h1>
+        <p class="vault-description">
+          Directory <code>{{ current_folder }}</code> is encrypted and password-protected.<br>
+          Answer the security question to unlock access.
+        </p>
 
-    /* --- Animated Background --- */
-    .orb {
-      position: fixed;
-      width: 60vmax;
-      height: 60vmax;
-      border-radius: 50%;
-      filter: blur(120px);
-      z-index: -1;
-      opacity: 0.25;
-      animation: orbFloat 20s infinite alternate cubic-bezier(0.45, 0.05, 0.55, 0.95);
-    }
+        <form action="{{ url_for('web.auth_vault') }}" method="post" class="vault-form" autocomplete="off">
+          <input type="hidden" name="folder" value="{{ current_folder }}">
 
-    .orb-1 {
-      background: var(--accent-1);
-      top: -20%;
-      left: -20%;
-    }
+          <div class="vault-field mb-4">
+            <label for="vault-password" class="vault-label">What is your favorite food?</label>
+            <div class="input-with-icon">
+              <i class="bi bi-key-fill input-icon" aria-hidden="true"></i>
+              <input type="password"
+                     id="vault-password"
+                     name="password"
+                     class="form-control input-clean text-center"
+                     placeholder="Enter secret answer..."
+                     required
+                     autofocus
+                     aria-required="true">
+            </div>
+          </div>
 
-    .orb-2 {
-      background: var(--accent-2);
-      bottom: -20%;
-      right: -20%;
-      animation-delay: -7s;
-    }
-
-    @keyframes orbFloat {
-      0% { transform: translate(0, 0) scale(1); }
-      100% { transform: translate(10%, 15%) scale(1.1); }
-    }
-
-    /* --- Layout Components --- */
-    .app-wrapper {
-      max-width: 1100px;
-      margin: 0 auto;
-      padding: 3rem 1.5rem;
-    }
-
-    .glass-card {
-      background: var(--glass-bg);
-      backdrop-filter: blur(20px);
-      -webkit-backdrop-filter: blur(20px);
-      border: 1px solid var(--glass-border);
-      border-radius: 32px;
-      box-shadow: var(--glass-shadow);
-      padding: 2.5rem;
-      transition: border-color 0.3s;
-    }
-
-    .glass-card:hover {
-      border-color: rgba(255, 255, 255, 0.12);
-    }
-
-    /* --- Header & Branding --- */
-    .brand-section {
-      text-align: center;
-      margin-bottom: 3.5rem;
-    }
-
-    .brand-logo {
-      font-size: 3.5rem;
-      font-weight: 800;
-      letter-spacing: -2px;
-      background: linear-gradient(135deg, #fff 0%, #a5b4fc 100%);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      display: inline-flex;
-      align-items: center;
-      gap: 1rem;
-      margin-bottom: 0.5rem;
-    }
-
-    .brand-logo i {
-      filter: drop-shadow(0 0 10px rgba(129, 140, 248, 0.3));
-      -webkit-text-fill-color: initial;
-      color: var(--primary);
-    }
-
-    .tagline {
-      color: var(--text-muted);
-      font-size: 1.1rem;
-      font-weight: 500;
-    }
-
-    /* --- Navigation & Breadcrumbs --- */
-    .nav-bar {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      margin-bottom: 2rem;
-      gap: 1.5rem;
-    }
-
-    .breadcrumb-area {
-      flex: 1;
-      display: flex;
-      align-items: center;
-      gap: 0.75rem;
-      background: rgba(0, 0, 0, 0.3);
-      padding: 0.8rem 1.5rem;
-      border-radius: 16px;
-      border: 1px solid var(--glass-border);
-      font-size: 0.95rem;
-    }
-
-    .breadcrumb-area a {
-      color: var(--primary);
-      text-decoration: none;
-      font-weight: 600;
-      transition: color 0.2s;
-    }
-
-    .breadcrumb-area a:hover {
-      color: #fff;
-    }
-
-    .breadcrumb-area span { color: var(--text-muted); }
-
-    /* --- Search --- */
-    .search-wrapper {
-      position: relative;
-      margin-bottom: 2.5rem;
-    }
-
-    .search-input {
-      width: 100%;
-      background: rgba(0, 0, 0, 0.4);
-      border: 1px solid var(--glass-border);
-      border-radius: 20px;
-      padding: 1.2rem 1.5rem 1.2rem 3.8rem;
-      color: #fff;
-      font-size: 1.05rem;
-      transition: all 0.3s;
-    }
-
-    .search-input:focus {
-      outline: none;
-      border-color: var(--primary);
-      background: rgba(0, 0, 0, 0.5);
-      box-shadow: 0 0 0 5px rgba(129, 140, 248, 0.1);
-    }
-
-    .search-icon {
-      position: absolute;
-      left: 1.5rem;
-      top: 50%;
-      transform: translateY(-50%);
-      color: var(--text-muted);
-      font-size: 1.3rem;
-    }
-
-    /* --- Action Panels --- */
-    .action-grid {
-      display: grid;
-      grid-template-columns: 1.2fr 0.8fr;
-      gap: 2rem;
-      margin-bottom: 3rem;
-    }
-
-    .panel {
-      background: rgba(255, 255, 255, 0.02);
-      border: 1px solid var(--glass-border);
-      border-radius: 24px;
-      padding: 1.75rem;
-    }
-
-    .panel-title {
-      font-size: 1.25rem;
-      font-weight: 700;
-      margin-bottom: 1.5rem;
-      display: flex;
-      align-items: center;
-      gap: 0.75rem;
-    }
-
-    .drop-zone {
-      border: 2px dashed var(--glass-border);
-      border-radius: 20px;
-      padding: 3rem 1.5rem;
-      text-align: center;
-      cursor: pointer;
-      transition: all 0.3s;
-    }
-
-    .drop-zone:hover {
-      border-color: var(--primary);
-      background: rgba(255, 255, 255, 0.02);
-      transform: scale(1.01);
-    }
-
-    .drop-zone i {
-      font-size: 2.5rem;
-      color: var(--primary);
-      margin-bottom: 1rem;
-      display: block;
-    }
-
-    /* --- File List --- */
-    .file-grid-header {
-      display: grid;
-      grid-template-columns: 1fr auto;
-      align-items: center;
-      margin-bottom: 1.5rem;
-      padding: 0 1rem;
-    }
-
-    .file-item {
-      display: grid;
-      grid-template-columns: auto 1fr auto auto;
-      align-items: center;
-      gap: 1.5rem;
-      padding: 1.1rem 1.5rem;
-      background: rgba(255, 255, 255, 0.02);
-      border: 1px solid var(--glass-border);
-      border-radius: 18px;
-      margin-bottom: 0.85rem;
-      transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-    }
-
-    .file-item:hover {
-      background: rgba(255, 255, 255, 0.05);
-      border-color: rgba(255, 255, 255, 0.2);
-      transform: translateX(8px);
-    }
-
-    .file-icon {
-      width: 48px;
-      height: 48px;
-      background: rgba(255, 255, 255, 0.04);
-      border-radius: 14px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 1.4rem;
-    }
-
-    .file-name {
-      font-weight: 600;
-      color: #fff;
-      text-decoration: none;
-      font-size: 1.05rem;
-    }
-
-    .file-name:hover { color: var(--primary); }
-
-    .file-meta {
-      font-size: 0.85rem;
-      color: var(--text-muted);
-      font-weight: 500;
-    }
-
-    /* --- Buttons --- */
-    .btn-glass {
-      padding: 0.75rem 1.25rem;
-      border-radius: 14px;
-      font-weight: 600;
-      font-size: 0.9rem;
-      display: inline-flex;
-      align-items: center;
-      gap: 0.6rem;
-      transition: all 0.2s;
-      border: 1px solid transparent;
-      cursor: pointer;
-    }
-
-    .btn-primary-glass {
-      background: var(--primary);
-      color: #fff;
-      box-shadow: 0 4px 20px rgba(129, 140, 248, 0.2);
-    }
-
-    .btn-primary-glass:hover {
-      background: var(--primary-hover);
-      transform: translateY(-2px);
-    }
-
-    .btn-icon-only {
-      width: 42px;
-      height: 42px;
-      border-radius: 12px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      background: rgba(255, 255, 255, 0.05);
-      color: #fff;
-      border: 1px solid var(--glass-border);
-    }
-
-    .btn-icon-only:hover {
-      background: rgba(255, 255, 255, 0.1);
-      color: var(--primary);
-    }
-
-    .btn-danger-glass {
-      color: #fca5a5;
-      background: rgba(239, 68, 68, 0.05);
-      border-color: rgba(239, 68, 68, 0.15);
-    }
-
-    .btn-danger-glass:hover {
-      background: rgba(239, 68, 68, 0.2);
-      color: #fff;
-    }
-
-    /* --- Utils --- */
-    .input-clean {
-      background: rgba(0, 0, 0, 0.4);
-      border: 1px solid var(--glass-border);
-      border-radius: 14px;
-      padding: 0.8rem 1.2rem;
-      color: #fff;
-      width: 100%;
-    }
-
-    .input-clean:focus {
-      outline: none;
-      border-color: var(--primary);
-    }
-
-    .stat-pill {
-      background: rgba(255, 255, 255, 0.03);
-      border: 1px solid var(--glass-border);
-      padding: 0.5rem 1rem;
-      border-radius: 99px;
-      font-size: 0.85rem;
-      color: var(--text-muted);
-      display: inline-flex;
-      align-items: center;
-      gap: 0.5rem;
-    }
-
-    .stat-pill strong { color: #fff; }
-
-    /* --- Animations --- */
-    .fade-up {
-      animation: fadeUp 0.8s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
-    }
-
-    @keyframes fadeUp {
-      from { opacity: 0; transform: translateY(20px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
-
-    /* --- Overlays --- */
-    .upload-overlay {
-      position: absolute;
-      inset: 0;
-      background: rgba(2, 6, 23, 0.85);
-      backdrop-filter: blur(10px);
-      border-radius: 24px;
-      display: none;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      z-index: 100;
-    }
-
-    .upload-overlay.active { display: flex; }
-
-    .loader {
-      width: 48px;
-      height: 48px;
-      border: 4px solid rgba(255, 255, 255, 0.1);
-      border-top-color: var(--primary);
-      border-radius: 50%;
-      animation: spin 1s linear infinite;
-      margin-bottom: 1.5rem;
-    }
-
-    @keyframes spin { to { transform: rotate(360deg); } }
-
-    @media (max-width: 992px) {
-      .action-grid { grid-template-columns: 1fr; }
-    }
-  </style>
-</head>
-<body>
-  <div class="orb orb-1"></div>
-  <div class="orb orb-2"></div>
-
-  <div class="app-wrapper">
-    <div class="brand-section">
-      <h1 class="brand-logo"><i class="bi bi-cloud-lightning-fill"></i> Storista</h1>
-      <p class="tagline">Minimal. Secure. Powered by GitHub.</p>
+          <div class="vault-actions">
+            <button type="submit" class="btn-glass btn-primary-glass w-100 justify-content-center mb-3">
+              <i class="bi bi-unlock-fill me-2" aria-hidden="true"></i> Unlock Vault
+            </button>
+            <a href="{{ url_for('web.index') }}" class="btn-glass btn-outline-glass w-100 justify-content-center">
+              <i class="bi bi-arrow-left me-2" aria-hidden="true"></i> Return to Safe Storage
+            </a>
+          </div>
+        </form>
+      </div>
     </div>
 
-    <div class="glass-card fade-up">
-      <!-- Navigation Area -->
-      <div class="nav-bar">
-        {% if current_folder %}
-          <a href="{{ url_for('index', folder=parent_folder) }}" class="btn-glass btn-icon-only" title="Go back">
-            <i class="bi bi-chevron-left"></i>
-          </a>
-        {% endif %}
-        
-        <div class="breadcrumb-area">
-          <i class="bi bi-house-door-fill" style="opacity: 0.6"></i>
-          <a href="{{ url_for('index') }}">Storage</a>
-          {% if current_folder %}
-            {% set parts = current_folder.split('/') %}
-            {% for part in parts %}
-              <span>/</span>
-              <a href="{{ url_for('index', folder='/'.join(parts[:loop.index])) }}">{{ part }}</a>
-            {% endfor %}
-          {% endif %}
-        </div>
-      </div>
+  {% else %}
+    <!-- ============================================================== -->
+    <!-- NORMAL DASHBOARD VIEW: COMPACT TOOLBAR + FILE BROWSER          -->
+    <!-- ============================================================== -->
+    <div class="glass-card dashboard-card fade-up">
+      <h1 class="visually-hidden">
+        {%- if current_folder -%}
+          {{ current_folder.strip('/').split('/')[-1] }} &mdash; Storista File Manager
+        {%- else -%}
+          Storista File Manager
+        {%- endif -%}
+      </h1>
 
-      <!-- Messages -->
-      {% with messages = get_flashed_messages() %}
-        {% if messages %}
-          {% for message in messages %}
-            <div class="alert alert-primary bg-opacity-10 border-white border-opacity-10 text-white rounded-4 mb-4">
-              <i class="bi bi-info-circle me-2"></i> {{ message }}
-            </div>
-          {% endfor %}
-        {% endif %}
-      {% endwith %}
-
-      <!-- Actions -->
-      <div class="action-grid">
-        <div class="panel position-relative">
-          <div class="upload-overlay" id="upload-overlay">
-            <div class="loader"></div>
-            <div class="fw-bold">Processing...</div>
-          </div>
-          
-          <h3 class="panel-title"><i class="bi bi-arrow-up-circle"></i> Upload File</h3>
-          <form id="uploadForm" action="/upload" method="post" enctype="multipart/form-data">
-            <input type="hidden" name="folder" value="{{ current_folder }}">
-            <div class="drop-zone" onclick="document.getElementById('fileInput').click()">
-              <i class="bi bi-file-earmark-plus"></i>
-              <div id="drop-text" class="fw-medium">Click or drag file here</div>
-              <input type="file" id="fileInput" name="file" class="d-none">
-            </div>
-            <div id="selected-file-name" class="mt-3 text-center small text-muted d-none"></div>
-            <div class="mt-4 d-flex justify-content-between align-items-center">
-              <span class="small text-muted">Max 50MB</span>
-              <button type="submit" class="btn-glass btn-primary-glass">Upload to Cloud</button>
-            </div>
-          </form>
-        </div>
-
-        <div class="panel">
-          <h3 class="panel-title"><i class="bi bi-folder-plus"></i> New Folder</h3>
-          <form action="/create_folder" method="post">
-            <input type="hidden" name="folder" value="{{ current_folder }}">
-            <input type="text" name="new_folder_name" class="input-clean mb-3" placeholder="Folder name..." required>
-            <button type="submit" class="btn-glass w-100" style="background: rgba(129, 140, 248, 0.1); color: var(--primary); border-color: rgba(129, 140, 248, 0.2);">
-              Create Directory
-            </button>
-          </form>
-        </div>
-      </div>
-
-      <!-- Browser -->
-      <div class="browser-section">
-        {% if needs_auth %}
-          <div class="panel text-center py-5 border-danger border-opacity-25" style="background: rgba(239, 68, 68, 0.02);">
-            <i class="bi bi-shield-lock-fill text-danger mb-3" style="font-size: 3rem;"></i>
-            <h3 class="fw-bold mb-4">The Vault is Locked</h3>
-            <p class="text-muted mb-4">You need to answer the secret question to enter.</p>
-            
-            <form action="/auth/vault" method="post" class="mx-auto" style="max-width: 350px;">
-              <input type="hidden" name="folder" value="{{ current_folder }}">
-              <div class="mb-4">
-                <label class="d-block mb-3 small fw-bold text-uppercase tracking-wider opacity-50">What is your favorite food?</label>
-                <input type="password" name="password" class="input-clean text-center" placeholder="Answer here..." autofocus required>
-              </div>
-              <button type="submit" class="btn-glass btn-primary-glass w-100 justify-content-center">
-                <i class="bi bi-unlock-fill"></i> Access Vault
-              </button>
-            </form>
-          </div>
-        {% else %}
-          <div class="file-grid-header">
-            <h3 class="panel-title mb-0"><i class="bi bi-grid-1x2"></i> Contents</h3>
-            <div class="d-flex gap-2">
-              <div class="stat-pill"><i class="bi bi-files"></i> <strong id="file-count">0</strong> items</div>
-              <div class="stat-pill"><i class="bi bi-hdd-network"></i> <strong id="total-size">0 KB</strong></div>
-            </div>
-          </div>
-
-          <div class="search-wrapper">
-            <i class="bi bi-search search-icon"></i>
-            <input type="text" id="searchInput" class="search-input" placeholder="Quick find files or folders...">
-          </div>
-
-          <div id="file-list">
-            {% for f in files %}
-              <div class="file-item" data-name="{{ f.name|lower }}" data-type="{{ 'dir' if f.is_dir else 'file' }}" data-bytes="{{ f.size if not f.is_dir else 0 }}">
-                <div class="file-icon" style="color: {{ '#fbbf24' if f.is_dir else '#818cf8' }}">
-                  <i class="bi {{ 'bi-folder-fill' if f.is_dir else 'bi-file-earmark-text-fill' }}"></i>
-                </div>
-                
-                <div class="flex-grow-1 overflow-hidden">
-                  {% if f.is_dir %}
-                    <a href="{{ url_for('index', folder=f.path.replace('storage/', '')) }}" class="file-name text-truncate d-block">
-                      {{ f.name }}/
-                    </a>
-                    <span class="file-meta">Directory</span>
+      <!-- 1. Compact Action Toolbar (Feature 21) -->
+      <div class="action-toolbar" role="toolbar" aria-label="Storage Directory Actions">
+        <!-- Hierarchical Breadcrumb Navigation -->
+        <nav class="breadcrumb-container" aria-label="Directory Breadcrumb">
+          <ol class="breadcrumb-list">
+            {% if current_folder %}
+              <li class="breadcrumb-item breadcrumb-back">
+                <a href="{{ url_for('web.index', folder=parent_folder) if parent_folder is not none else url_for('web.index') }}"
+                   class="btn-icon-nav"
+                   aria-label="Go to parent folder"
+                   title="Go back to parent directory">
+                  <i class="bi bi-chevron-left" aria-hidden="true"></i>
+                </a>
+              </li>
+            {% endif %}
+            <li class="breadcrumb-item">
+              <a href="{{ url_for('web.index') }}" class="breadcrumb-link {{ 'active' if not current_folder else '' }}" {{ 'aria-current="page"' if not current_folder else '' }}>
+                <i class="bi bi-hdd-network-fill me-1" aria-hidden="true"></i> Storage
+              </a>
+            </li>
+            {% if current_folder %}
+              {% set parts = current_folder.strip('/').split('/') %}
+              {% for part in parts %}
+                <li class="breadcrumb-separator" aria-hidden="true">/</li>
+                <li class="breadcrumb-item">
+                  {% if loop.last %}
+                    <span class="breadcrumb-current" aria-current="page">{{ part }}</span>
                   {% else %}
-                    <div class="file-name text-truncate">{{ f.name }}</div>
-                    <span class="file-meta">{{ f.size_formatted }}</span>
-                  {% endif %}
-                </div>
-
-                <div class="d-flex gap-2">
-                  {% if not f.is_dir %}
-                    <a href="{{ f.download_url }}" class="btn-glass btn-icon-only" target="_blank" rel="noopener noreferrer" title="Download">
-                      <i class="bi bi-download"></i>
+                    <a href="{{ url_for('web.index', folder='/'.join(parts[:loop.index])) }}" class="breadcrumb-link">
+                      {{ part }}
                     </a>
                   {% endif %}
-                  <button class="btn-glass btn-icon-only btn-danger-glass" onclick="{{ 'deleteFolder' if f.is_dir else 'deleteFile' }}('{{ f.path }}')" title="Delete">
-                    <i class="bi bi-trash3"></i>
+                </li>
+              {% endfor %}
+            {% endif %}
+          </ol>
+        </nav>
+
+        <!-- Quick Action Buttons -->
+        <div class="toolbar-actions">
+          <button type="button"
+                  class="btn-glass btn-primary-glass"
+                  id="btnToggleUpload"
+                  data-bs-toggle="collapse"
+                  data-bs-target="#uploadDrawer"
+                  aria-expanded="false"
+                  aria-controls="uploadDrawer"
+                  aria-label="Toggle upload panel">
+            <i class="bi bi-cloud-arrow-up-fill me-1" aria-hidden="true"></i>
+            <span>Upload</span>
+          </button>
+
+          <button type="button"
+                  class="btn-glass btn-secondary-glass"
+                  id="btnOpenFolderModal"
+                  aria-label="Create new directory">
+            <i class="bi bi-folder-plus me-1" aria-hidden="true"></i>
+            <span>New Folder</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- 2. Collapsible Upload Drawer (Features 12, 13, 17) -->
+      <div class="collapse upload-drawer" id="uploadDrawer">
+        <div class="upload-panel position-relative p-3 p-md-4 rounded-4 mb-4">
+          <!-- Tab Navigation Header -->
+          <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-3">
+            <div class="upload-tabs" role="tablist" aria-label="Upload source">
+              <button type="button"
+                      class="tab-btn active"
+                      id="tab-file-btn"
+                      role="tab"
+                      aria-selected="true"
+                      aria-controls="panel-file-upload"
+                      data-tab="file">
+                <i class="bi bi-file-earmark-arrow-up me-1" aria-hidden="true"></i> Upload File
+              </button>
+              <button type="button"
+                      class="tab-btn"
+                      id="tab-url-btn"
+                      role="tab"
+                      aria-selected="false"
+                      aria-controls="panel-url-upload"
+                      data-tab="url">
+                <i class="bi bi-link-45deg me-1" aria-hidden="true"></i> Import from URL
+              </button>
+            </div>
+            <span class="badge rounded-pill bg-white bg-opacity-10 text-muted small px-3 py-2">
+              <i class="bi bi-hdd-network me-1" aria-hidden="true"></i> Max 50MB
+            </span>
+          </div>
+
+          <!-- Tab 1: Local File Upload -->
+          <div id="panel-file-upload" class="tab-panel active" role="tabpanel" aria-labelledby="tab-file-btn">
+            <form id="fileUploadForm" action="{{ url_for('web.upload') }}" method="post" enctype="multipart/form-data">
+              <input type="hidden" name="folder" value="{{ current_folder }}">
+              <div class="drop-zone" id="dropZone" tabindex="0" role="button" aria-label="Upload file drop area. Click or press Enter to browse files">
+                <i class="bi bi-cloud-arrow-up" id="dropIcon" aria-hidden="true"></i>
+                <div id="dropText" class="fw-semibold text-white fs-5 mt-2">Click or drag file here</div>
+                <p class="text-muted small mt-1 mb-0">Supports images, documents, media, code, and archives</p>
+                <input type="file" id="fileInput" name="file" class="d-none" aria-hidden="true">
+              </div>
+
+              <!-- Selected File Card -->
+              <div id="selectedFileInfo" class="selected-file-card mt-3 d-none">
+                <div class="d-flex align-items-center justify-content-between p-2 px-3 rounded-3 selected-file-inner">
+                  <div class="d-flex align-items-center gap-2 overflow-hidden">
+                    <i class="bi bi-file-earmark-check text-success fs-5" aria-hidden="true"></i>
+                    <div class="text-truncate">
+                      <div id="selectedFileName" class="fw-semibold text-white small text-truncate"></div>
+                      <div id="selectedFileSize" class="text-muted small"></div>
+                    </div>
+                  </div>
+                  <button type="button" id="clearFileBtn" class="btn-glass btn-icon-only" aria-label="Remove selected file">
+                    <i class="bi bi-x-lg" aria-hidden="true"></i>
                   </button>
                 </div>
               </div>
-            {% else %}
-              <div class="text-center py-5 opacity-25">
-                <i class="bi bi-inbox" style="font-size: 4rem;"></i>
-                <p class="mt-3 fs-5 fw-medium">No items found</p>
+
+              <div class="mt-3 d-flex justify-content-end">
+                <button type="submit" id="fileSubmitBtn" class="btn-glass btn-primary-glass" disabled>
+                  <i class="bi bi-cloud-upload me-1" aria-hidden="true"></i> Upload to Cloud
+                </button>
               </div>
-            {% endfor %}
+            </form>
           </div>
-        {% endif %}
+
+          <!-- Tab 2: Remote URL Import -->
+          <div id="panel-url-upload" class="tab-panel d-none" role="tabpanel" aria-labelledby="tab-url-btn">
+            <form id="urlUploadForm" action="{{ url_for('web.upload') }}" method="post">
+              <input type="hidden" name="folder" value="{{ current_folder }}">
+              <div class="url-import-box p-3 rounded-4">
+                <label for="urlInput" class="form-label small text-muted mb-2">
+                  <i class="bi bi-globe me-1" aria-hidden="true"></i> Remote File URL (HTTP/HTTPS)
+                </label>
+                <div class="position-relative">
+                  <input type="url"
+                         id="urlInput"
+                         name="url"
+                         class="form-control input-clean"
+                         placeholder="https://example.com/assets/sample.pdf"
+                         required
+                         pattern="https?://.+"
+                         title="Must start with http:// or https://">
+                </div>
+                <p class="small text-muted mt-2 mb-0">
+                  <i class="bi bi-shield-lock me-1" aria-hidden="true"></i> Sandboxed SSRF-safe streaming. Private IP ranges and loopback endpoints are blocked.
+                </p>
+              </div>
+
+              <div class="mt-3 d-flex justify-content-end">
+                <button type="submit" id="urlSubmitBtn" class="btn-glass btn-primary-glass">
+                  <i class="bi bi-cloud-download me-1" aria-hidden="true"></i> Fetch &amp; Import
+                </button>
+              </div>
+            </form>
+          </div>
+
+          <!-- Progress Bar Section (Shared) -->
+          <div id="uploadProgressSection" class="upload-progress-wrapper mt-3 d-none">
+            <div class="d-flex justify-content-between align-items-center mb-1">
+              <span id="uploadStatusText" class="small fw-semibold text-white">
+                <i class="bi bi-arrow-up-circle me-1" aria-hidden="true"></i> Uploading...
+              </span>
+              <span id="uploadPercentText" class="small text-muted fw-bold">0%</span>
+            </div>
+            <progress id="uploadProgressBar" class="progress-bar-custom w-100" value="0" max="100"></progress>
+            <div class="d-flex justify-content-between align-items-center mt-1">
+              <span id="uploadBytesText" class="small text-muted">0 B / 0 B</span>
+              <span id="uploadSpeedText" class="small text-muted"></span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 3. Browser Header & Toolbar (Features 19, 20, 23) -->
+      <div class="browser-section">
+        <div class="browser-toolbar">
+          <h2 class="panel-title mb-0">
+            <i class="bi bi-grid-1x2 me-2" aria-hidden="true"></i>Files &amp; Folders
+          </h2>
+
+          <div class="d-flex flex-wrap align-items-center gap-3">
+            <div class="d-flex gap-2">
+              <div class="stat-pill" role="status" aria-live="polite">
+                <i class="bi bi-files me-1" aria-hidden="true"></i> <strong id="file-count">0</strong> items
+              </div>
+              <div class="stat-pill" role="status" aria-live="polite">
+                <i class="bi bi-hdd-network me-1" aria-hidden="true"></i> <strong id="total-size">0 B</strong>
+              </div>
+            </div>
+
+            <!-- Sort Dropdown -->
+            <div class="sort-wrapper">
+              <label for="sortSelect" class="sort-label small text-muted">
+                <i class="bi bi-arrow-down-up" aria-hidden="true"></i> Sort:
+              </label>
+              <select id="sortSelect" class="sort-select" aria-label="Sort files and folders">
+                <option value="name-asc" selected>Name (A &rarr; Z)</option>
+                <option value="name-desc">Name (Z &rarr; A)</option>
+                <option value="size-desc">Size (Largest first)</option>
+                <option value="size-asc">Size (Smallest first)</option>
+                <option value="type-asc">Type (Grouped)</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <!-- Category Filter Pills (Feature 19) -->
+        <nav class="filter-bar" aria-label="Filter items by category" role="tablist">
+          <button type="button" class="filter-pill active" data-filter="all" role="tab" aria-selected="true" id="pill-all">
+            <span>All</span>
+            <span class="filter-badge" id="badge-all">0</span>
+          </button>
+          <button type="button" class="filter-pill" data-filter="folder" role="tab" aria-selected="false" id="pill-folder">
+            <i class="bi bi-folder-fill me-1" aria-hidden="true"></i>
+            <span>Folders</span>
+            <span class="filter-badge" id="badge-folder">0</span>
+          </button>
+          <button type="button" class="filter-pill" data-filter="document" role="tab" aria-selected="false" id="pill-document">
+            <i class="bi bi-file-earmark-text-fill me-1" aria-hidden="true"></i>
+            <span>Documents</span>
+            <span class="filter-badge" id="badge-document">0</span>
+          </button>
+          <button type="button" class="filter-pill" data-filter="image" role="tab" aria-selected="false" id="pill-image">
+            <i class="bi bi-file-earmark-image-fill me-1" aria-hidden="true"></i>
+            <span>Images</span>
+            <span class="filter-badge" id="badge-image">0</span>
+          </button>
+          <button type="button" class="filter-pill" data-filter="media" role="tab" aria-selected="false" id="pill-media">
+            <i class="bi bi-file-earmark-play-fill me-1" aria-hidden="true"></i>
+            <span>Media</span>
+            <span class="filter-badge" id="badge-media">0</span>
+          </button>
+        </nav>
+
+        <!-- Real-Time Search Bar (Feature 20) -->
+        <div class="search-wrapper" role="search">
+          <label for="searchInput" class="visually-hidden">Search files and folders</label>
+          <i class="bi bi-search search-icon" aria-hidden="true"></i>
+          <input type="search"
+                 id="searchInput"
+                 class="search-input"
+                 placeholder="Search files and folders... (Press / to focus)"
+                 autocomplete="off"
+                 spellcheck="false"
+                 aria-label="Search files and folders in current directory"
+                 aria-describedby="search-kbd-badge">
+          <kbd id="search-kbd-badge" class="search-kbd-badge" aria-hidden="true" title="Press / to search">/</kbd>
+          <button type="button"
+                  id="searchClearBtn"
+                  class="search-clear-btn d-none"
+                  aria-label="Clear search input"
+                  title="Clear search">
+            <i class="bi bi-x-lg" aria-hidden="true"></i>
+          </button>
+        </div>
+
+        <!-- 4. File Grid / Items Listing (Features 15, 18, 23) -->
+        <div id="file-list" class="file-list-container" role="region" aria-label="Folder contents">
+          {% for f in files %}
+            {% set ext = f.name.rsplit('.', 1)[-1]|lower if '.' in f.name else '' %}
+            {% set mime = f.mime_type|default('', true)|lower %}
+
+            {% if f.is_dir %}
+              {% set icon_class = "file-icon-gold" %}
+              {% set icon_bi = "bi-folder-fill" %}
+              {% set cat = "folder" %}
+            {% elif mime.startswith('image/') or ext in ['png', 'jpg', 'jpeg', 'gif', 'svg', 'webp', 'bmp', 'ico'] %}
+              {% set icon_class = "file-icon-emerald" %}
+              {% set icon_bi = "bi-file-earmark-image-fill" %}
+              {% set cat = "image" %}
+            {% elif mime == 'application/pdf' or ext == 'pdf' %}
+              {% set icon_class = "file-icon-rose" %}
+              {% set icon_bi = "bi-file-earmark-pdf-fill" %}
+              {% set cat = "document" %}
+            {% elif ext in ['py', 'js', 'ts', 'jsx', 'tsx', 'html', 'css', 'json', 'xml', 'sql', 'sh', 'yml', 'yaml', 'c', 'cpp', 'rs', 'go'] %}
+              {% set icon_class = "file-icon-sky" %}
+              {% set icon_bi = "bi-file-earmark-code-fill" %}
+              {% set cat = "document" %}
+            {% elif ext in ['zip', 'tar', 'gz', '7z', 'rar', 'bz2'] or 'zip' in mime or 'tar' in mime %}
+              {% set icon_class = "file-icon-violet" %}
+              {% set icon_bi = "bi-file-earmark-zip-fill" %}
+              {% set cat = "media" %}
+            {% elif ext in ['xlsx', 'xls', 'csv', 'tsv', 'ods'] or 'spreadsheet' in mime or 'excel' in mime or 'csv' in mime %}
+              {% set icon_class = "file-icon-amber" %}
+              {% set icon_bi = "bi-file-earmark-spreadsheet-fill" %}
+              {% set cat = "document" %}
+            {% elif mime.startswith(('audio/', 'video/')) or ext in ['mp3', 'wav', 'ogg', 'mp4', 'mov', 'webm', 'mkv'] %}
+              {% set icon_class = "file-icon-pink" %}
+              {% set icon_bi = "bi-file-earmark-play-fill" %}
+              {% set cat = "media" %}
+            {% elif ext in ['txt', 'md', 'doc', 'docx', 'rtf', 'odt'] or mime.startswith('text/') %}
+              {% set icon_class = "file-icon-slate" %}
+              {% set icon_bi = "bi-file-earmark-text-fill" %}
+              {% set cat = "document" %}
+            {% else %}
+              {% set icon_class = "file-icon-indigo" %}
+              {% set icon_bi = "bi-file-earmark-fill" %}
+              {% set cat = "other" %}
+            {% endif %}
+
+            <div class="file-item"
+                 data-name="{{ f.name|lower }}"
+                 data-type="{{ 'dir' if f.is_dir else 'file' }}"
+                 data-is-dir="{{ 'true' if f.is_dir else 'false' }}"
+                 data-bytes="{{ f.size if not f.is_dir else 0 }}"
+                 data-category="{{ cat }}">
+
+              <div class="file-icon {{ icon_class }}" aria-hidden="true">
+                <i class="bi {{ icon_bi }}"></i>
+              </div>
+
+              <div class="file-item-info flex-grow-1 overflow-hidden">
+                {% if f.is_dir %}
+                  <a href="{{ url_for('web.index', folder=f.path.replace('storage/', '')) }}" class="file-name text-truncate d-block">
+                    {{ f.name }}/
+                  </a>
+                  <span class="file-meta">Directory</span>
+                {% else %}
+                  <button type="button"
+                          class="file-name file-name-preview text-truncate text-start"
+                          aria-label="Preview {{ f.name }}"
+                          data-path="{{ f.path }}"
+                          data-name="{{ f.name }}"
+                          data-mime="{{ f.mime_type }}"
+                          data-size="{{ f.size_formatted }}"
+                          title="Preview {{ f.name }}">
+                    {{ f.name }}
+                  </button>
+                  <span class="file-meta">{{ f.size_formatted }} &bull; {{ f.mime_type or ext|upper }}</span>
+                {% endif %}
+              </div>
+
+              <div class="file-actions d-flex align-items-center gap-2">
+                {% if not f.is_dir %}
+                  <button type="button"
+                          class="btn-glass btn-icon-only btn-preview"
+                          data-path="{{ f.path }}"
+                          data-name="{{ f.name }}"
+                          data-mime="{{ f.mime_type }}"
+                          data-size="{{ f.size_formatted }}"
+                          title="Preview {{ f.name }}"
+                          aria-label="Preview {{ f.name }}">
+                    <i class="bi bi-eye" aria-hidden="true"></i>
+                  </button>
+
+                  <a href="{{ f.download_url }}"
+                     class="btn-glass btn-icon-only"
+                     target="_blank"
+                     rel="noopener noreferrer"
+                     title="Download {{ f.name }}"
+                     aria-label="Download {{ f.name }}"
+                     download>
+                    <i class="bi bi-download" aria-hidden="true"></i>
+                  </a>
+                {% endif %}
+
+                <button type="button"
+                        class="btn-glass btn-icon-only btn-danger-glass btn-delete"
+                        data-path="{{ f.path }}"
+                        data-type="{{ 'folder' if f.is_dir else 'file' }}"
+                        data-name="{{ f.name }}"
+                        title="Delete {{ 'folder' if f.is_dir else 'file' }}"
+                        aria-label="Delete {{ f.name }}">
+                  <i class="bi bi-trash3" aria-hidden="true"></i>
+                </button>
+              </div>
+            </div>
+          {% else %}
+            <div class="empty-folder-state text-center py-5">
+              <i class="bi bi-inbox fs-1 text-muted" aria-hidden="true"></i>
+              <p class="mt-3 text-muted fw-medium">No items found in this directory</p>
+            </div>
+          {% endfor %}
+        </div>
+
+        <!-- Dynamic Empty Search State (Feature 20) -->
+        <div id="search-empty-state" class="empty-state-card d-none" role="status" aria-live="polite">
+          <div class="empty-state-icon" aria-hidden="true">
+            <i class="bi bi-search-heart"></i>
+          </div>
+          <h3 class="empty-state-title">No matching files</h3>
+          <p class="empty-state-msg">
+            No files or folders matching &ldquo;<strong id="search-term-display"></strong>&rdquo; in this directory.
+          </p>
+          <button type="button" class="btn-glass btn-reset-search" id="btnResetSearch">
+            <i class="bi bi-arrow-counterclockwise me-1" aria-hidden="true"></i> Reset Search &amp; Filters
+          </button>
+        </div>
+      </div>
+    </div>
+  {% endif %}
+</div>
+{% endblock %}
+
+{% block modals %}
+{% if not needs_auth %}
+<!-- ============================================================== -->
+<!-- MODALS: Native HTML5 <dialog> Elements                         -->
+<!-- ============================================================== -->
+
+<!-- 1. Safe Deletion Confirmation Dialog (Feature 14) -->
+<dialog id="deleteModal" class="glass-dialog" aria-labelledby="deleteModalTitle" aria-describedby="deleteModalDesc">
+  <div class="dialog-content">
+    <div class="d-flex align-items-center gap-3 mb-3">
+      <div class="icon-badge-danger" aria-hidden="true">
+        <i class="bi bi-trash3-fill text-danger fs-4"></i>
+      </div>
+      <div>
+        <h3 id="deleteModalTitle" class="m-0 fw-bold text-white fs-5">Confirm Deletion</h3>
+        <div class="small text-muted">Irreversible action</div>
+      </div>
+    </div>
+
+    <div class="dialog-body mb-4">
+      <p id="deleteModalDesc" class="text-secondary mb-2">
+        Are you sure you want to permanently delete <strong id="deleteTargetName" class="text-white"></strong>?
+      </p>
+      <div id="deleteFolderNotice" class="alert alert-danger bg-danger bg-opacity-10 border-danger border-opacity-25 rounded-3 py-2 px-3 small text-danger d-none">
+        <i class="bi bi-exclamation-triangle-fill me-1" aria-hidden="true"></i>
+        <strong>Warning:</strong> This is a directory. All files and nested subdirectories inside will be permanently deleted from GitHub!
+      </div>
+      <p class="small text-muted mb-0">This resource will be purged from the repository commit tree immediately.</p>
+    </div>
+
+    <div class="dialog-actions d-flex justify-content-end gap-2">
+      <button type="button" id="cancelDeleteBtn" class="btn-glass">Cancel</button>
+      <button type="button" id="confirmDeleteBtn" class="btn-glass btn-danger-glass">
+        <i class="bi bi-trash3-fill me-1" aria-hidden="true"></i> Delete Permanently
+      </button>
+    </div>
+  </div>
+</dialog>
+
+<!-- 2. New Folder Creation Dialog -->
+<dialog id="newFolderModal" class="glass-dialog" aria-labelledby="newFolderModalTitle">
+  <div class="dialog-content">
+    <div class="d-flex align-items-center gap-3 mb-3">
+      <div class="icon-badge-primary" aria-hidden="true">
+        <i class="bi bi-folder-plus text-primary fs-4"></i>
+      </div>
+      <div>
+        <h3 id="newFolderModalTitle" class="m-0 fw-bold text-white fs-5">Create New Directory</h3>
+        <div class="small text-muted">Add folder to storage</div>
+      </div>
+    </div>
+
+    <form id="newFolderForm" action="{{ url_for('web.create_folder') }}" method="post">
+      <input type="hidden" name="folder" value="{{ current_folder }}">
+      <div class="dialog-body mb-4">
+        <label for="newFolderNameInput" class="form-label small text-muted mb-2">Directory Name</label>
+        <input type="text"
+               id="newFolderNameInput"
+               name="new_folder_name"
+               class="form-control input-clean"
+               placeholder="e.g. documents or archives"
+               required
+               autocomplete="off">
+      </div>
+
+      <div class="dialog-actions d-flex justify-content-end gap-2">
+        <button type="button" id="cancelFolderBtn" class="btn-glass">Cancel</button>
+        <button type="submit" id="submitFolderBtn" class="btn-glass btn-primary-glass">
+          <i class="bi bi-folder-check me-1" aria-hidden="true"></i> Create Directory
+        </button>
+      </div>
+    </form>
+  </div>
+</dialog>
+
+<!-- 3. In-App File Preview Dialog (Feature 16) -->
+<dialog id="previewModal" class="glass-dialog preview-dialog" aria-labelledby="previewFileName" aria-label="File Preview">
+  <div class="dialog-content d-flex flex-column h-100">
+    <!-- Modal Header -->
+    <div class="preview-header d-flex align-items-center justify-content-between pb-3 mb-3 border-bottom border-secondary border-opacity-25">
+      <div class="d-flex align-items-center gap-3 overflow-hidden">
+        <div id="previewIcon" class="file-icon flex-shrink-0" style="width: 44px; height: 44px; font-size: 1.3rem;" aria-hidden="true">
+          <i class="bi bi-file-earmark"></i>
+        </div>
+        <div class="overflow-hidden">
+          <h3 id="previewFileName" class="text-white fw-bold mb-0 text-truncate fs-5"></h3>
+          <div class="d-flex align-items-center gap-2 mt-1">
+            <span id="previewFileSize" class="badge rounded-pill bg-white bg-opacity-10 text-secondary"></span>
+            <span id="previewMimeType" class="badge rounded-pill bg-white bg-opacity-10 text-secondary"></span>
+          </div>
+        </div>
+      </div>
+
+      <div class="d-flex align-items-center gap-2 flex-shrink-0">
+        <a id="previewDownloadLink" href="#" class="btn-glass btn-primary-glass" aria-label="Download file" download>
+          <i class="bi bi-download me-1" aria-hidden="true"></i> <span class="d-none d-sm-inline">Download</span>
+        </a>
+        <button type="button" id="closePreviewBtn" class="btn-glass btn-icon-only dialog-close-btn" aria-label="Close preview">
+          <i class="bi bi-x-lg" aria-hidden="true"></i>
+        </button>
+      </div>
+    </div>
+
+    <!-- Modal Content Panes -->
+    <div class="preview-viewport flex-grow-1 position-relative d-flex align-items-center justify-content-center overflow-auto">
+      <!-- Loading State -->
+      <div id="previewLoadingState" class="text-center py-5">
+        <div class="spinner-border text-primary" role="status">
+          <span class="visually-hidden">Loading preview...</span>
+        </div>
+        <p class="mt-3 text-muted small">Fetching file from storage...</p>
+      </div>
+
+      <!-- Image Pane -->
+      <div id="previewImagePane" class="preview-pane d-none w-100 h-100 d-flex align-items-center justify-content-center">
+        <img id="previewImg" src="" alt="Preview image" class="img-fluid rounded-3" style="max-height: 65vh; object-fit: contain;">
+      </div>
+
+      <!-- PDF Pane -->
+      <div id="previewPdfPane" class="preview-pane d-none w-100 h-100">
+        <iframe id="previewPdfFrame" src="" class="w-100 h-100 border-0 rounded-3" title="PDF Document Preview" style="min-height: 65vh;"></iframe>
+      </div>
+
+      <!-- Text / Code Pane -->
+      <div id="previewTextPane" class="preview-pane d-none w-100 h-100 text-start">
+        <pre class="m-0 p-3 rounded-3 text-light bg-black bg-opacity-50 border border-secondary border-opacity-25" style="max-height: 65vh; overflow: auto; font-family: 'JetBrains Mono', Consolas, monospace; font-size: 0.85rem;"><code id="previewCodeContent"></code></pre>
+      </div>
+
+      <!-- Fallback / Unsupported Format Pane -->
+      <div id="previewFallbackPane" class="preview-pane d-none text-center py-5">
+        <div class="p-4 rounded-4 bg-white bg-opacity-5 border border-white border-opacity-10 d-inline-block">
+          <i class="bi bi-file-earmark-lock text-muted" style="font-size: 3.5rem;" aria-hidden="true"></i>
+          <h4 class="mt-3 text-white fs-5">Preview Not Available</h4>
+          <p class="text-muted small mb-3">This binary file format cannot be viewed directly inside the browser.</p>
+          <a id="previewFallbackDownloadBtn" href="#" class="btn-glass btn-primary-glass" download>
+            <i class="bi bi-download me-1" aria-hidden="true"></i> Download File
+          </a>
+        </div>
       </div>
     </div>
   </div>
-
-  <script>
-    // Stats Engine
-    function updateStats() {
-      const items = document.querySelectorAll('.file-item');
-      let totalBytes = 0;
-      let visibleCount = 0;
-
-      items.forEach(item => {
-        if (item.style.display !== 'none') {
-          totalBytes += parseInt(item.dataset.bytes || 0);
-          visibleCount++;
-        }
-      });
-
-      document.getElementById('file-count').textContent = visibleCount;
-      document.getElementById('total-size').textContent = formatBytes(totalBytes);
-    }
-
-    function formatBytes(bytes) {
-      if (bytes === 0) return '0 B';
-      const k = 1024;
-      const sizes = ['B', 'KB', 'MB', 'GB'];
-      const i = Math.floor(Math.log(bytes) / Math.log(k));
-      return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
-    }
-
-    // Search Engine
-    document.getElementById('searchInput').addEventListener('input', function(e) {
-      const term = e.target.value.toLowerCase();
-      document.querySelectorAll('.file-item').forEach(item => {
-        const name = item.dataset.name;
-        item.style.display = name.includes(term) ? 'grid' : 'none';
-      });
-      updateStats();
-    });
-
-    // File Selection
-    document.getElementById('fileInput').addEventListener('change', function(e) {
-      const name = e.target.files[0]?.name;
-      if (name) {
-        const display = document.getElementById('selected-file-name');
-        display.textContent = `Selected: ${name}`;
-        display.classList.remove('d-none');
-        document.getElementById('drop-text').textContent = "Ready to upload";
-      }
-    });
-
-    // Form Handling
-    document.getElementById('uploadForm').addEventListener('submit', () => {
-      document.getElementById('upload-overlay').classList.add('active');
-    });
-
-    // API Actions
-    async function deleteFile(path) {
-      if (!confirm(`Delete ${path}? This action is permanent.`)) return;
-      try {
-        const res = await fetch(`/api/files/${path}`, { method: 'DELETE' });
-        if (res.ok) location.reload();
-      } catch (e) { alert("Failed to delete file"); }
-    }
-
-    async function deleteFolder(path) {
-      if (!confirm(`Recursively delete folder ${path}? Everything inside will be lost.`)) return;
-      try {
-        const res = await fetch(`/api/folders/${path}`, { method: 'DELETE' });
-        if (res.ok) location.reload();
-      } catch (e) { alert("Failed to delete folder"); }
-    }
-
-    // Init
-    updateStats();
-  </script>
-</body>
-</html>
+</dialog>
+{% endif %}
+{% endblock %}
